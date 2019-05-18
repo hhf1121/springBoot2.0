@@ -1,0 +1,44 @@
+server: 
+  #端口号
+  port: 8081
+mybatis:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+##PageHelper配置
+pagehelper: 
+  helperDialect: mysql
+  reasonable: true
+  supportMethodsArguments: true
+  params: count=countSql
+  page-size-zero: true
+  
+## 通过下面的配置，启用所有的监控端点，默认情况下、这些端点禁用
+management: 
+  endpoints: 
+   web: 
+     exposure: 
+       include: "*"
+spring:
+### 
+  profiles: 
+    active: prod
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/books?useUnicode=true&characterEncoding=utf-8
+    username: root
+    password: feixiang
+    driver-class-name: com.mysql.jdbc.Driver
+## Dubbo:consumer
+  dubbo:
+    application:
+      name: consumer
+    registry:
+      address: zookeeper://127.0.0.1:2181
+    scan: com.hhf.dubbo
+  
+## 自定义key
+disconf: 
+  name: 名字
+info: 
+  name: actuator/info
+  sex: 男
+  age: 123

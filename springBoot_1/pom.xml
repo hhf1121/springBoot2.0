@@ -118,6 +118,12 @@
 	    <groupId>org.springframework.boot</groupId>
 	    <artifactId>spring-boot-starter-actuator</artifactId>
 	</dependency>
+	<!-- 依赖/用dubbo远程调用rpc -->
+	<dependency>
+		  <groupId>com.hhf</groupId>
+		  <artifactId>springBoot2.0_dubbo_provider</artifactId>
+		  <version>0.0.1-SNAPSHOT</version>
+	</dependency>
   </dependencies>
   
   <!-- 打jar包配置、指定主入口 -->
