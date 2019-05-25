@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class UserService /*extends CommonDao*/{
-
+	
 	@Autowired
 	private UserMapper userMapper;
 	
@@ -47,4 +47,5 @@ public class UserService /*extends CommonDao*/{
 		log.info("----------queryUserByType:service-----------");
 		return userMapper.findByType(yes);
 	}
+	
 }
