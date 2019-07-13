@@ -120,10 +120,10 @@
 	</dependency>
 	<!-- 依赖/用dubbo远程调用rpc -->
 	<dependency>
-		  <groupId>com.hhf</groupId>
-		  <artifactId>springBoot2.0_dubbo_provider</artifactId>
-		  <version>0.0.1-SNAPSHOT</version>
-	</dependency>
+      <groupId>com.hhf</groupId>
+      <artifactId>springBoot2.0_dubbo_provider</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+  </dependency>
   </dependencies>
   
   <!-- 打jar包配置、指定主入口 -->
@@ -133,12 +133,13 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!-- MainClass in mainfest make a executable jar -->
-                    <archive>
-                        <manifest>
-                            <mainClass>com.hhf.App</mainClass>
-                        </manifest>
-                    </archive>
+                 <!-- MainClass in mainfest make a executable jar -->
+                <!-- idea中将以下两个标签去掉
+                 <archive>
+                     <manifest>-->
+                         <mainClass>com.hhf.App</mainClass>
+               <!--     </manifest>
+                </archive>-->
                 </configuration>
                 <executions>
                     <execution>
