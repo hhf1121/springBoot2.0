@@ -20,9 +20,9 @@ import java.util.Map;
 @Component
 public class MQProducer{
 
- // 生产者的组名
-@Value("${apache.rocketmq.producer.producerGroup}")
-private String producerGroup;
+        // 生产者的组名
+        @Value("${apache.rocketmq.producer.producerGroup}")
+        private String producerGroup;
 
         private DefaultMQProducer producer;
         /**

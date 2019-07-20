@@ -33,13 +33,13 @@ public class MQConsumer implements CommandLineRunner {
      */
     public void messageListener(){
 
-        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("SpringBootRocketMqGroup");
+        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("SpringBootHHFconsumer");
 
         consumer.setNamesrvAddr(namesrvAddr);
         try {
 
             // 订阅PushTopic下Tag为push的消息,都订阅消息
-            consumer.subscribe("PushTopic", "push");
+            consumer.subscribe("myTopic", "mytag");
 
             // 程序第一次启动从消息队列头获取数据
             consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
@@ -51,8 +51,11 @@ public class MQConsumer implements CommandLineRunner {
 
                 // 会把不同的消息分别放置到不同的队列中
                 for(Message msg:msgs){
-
-                    System.out.println("接收到了消息："+new String(msg.getBody()));
+                    try {
+                        System.out.println("接收到了消息："+new String(msg.getBody(),"utf-8"));
+                    } catch (UnsupportedEncodingException e) {
+                        e.printStackTrace();
+                    }
                 }
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             });

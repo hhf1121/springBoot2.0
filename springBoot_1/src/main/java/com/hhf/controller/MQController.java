@@ -31,7 +31,7 @@ public class MQController {
     @RequestMapping("/producer")
     public Map<String,Object> callback(String message) {
         try {
-           return mqProducer.send("PushTopic","push",message);
+           return mqProducer.send("myTopic","mytag",message);
         } catch (UnsupportedEncodingException e) {
             return ResultUtils.getFailResult(e.getMessage());
         } catch (InterruptedException e) {
