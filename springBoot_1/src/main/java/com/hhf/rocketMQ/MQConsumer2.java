@@ -3,7 +3,6 @@ package com.hhf.rocketMQ;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
-import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.Message;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,8 +17,8 @@ import java.io.UnsupportedEncodingException;
 // 当Spring 容器初始化完成后, Spring 会遍历所有实现 CommandLineRunner 接口的类, 并运行其run() 方法.
 // 可以加上 @Order 注解, 序号越小越早执行
 @Component
-@Order(1)
-public class MQConsumer implements CommandLineRunner {
+@Order(2)
+public class MQConsumer2 implements CommandLineRunner {
     /**
      * 消费者
      */
@@ -38,7 +37,7 @@ public class MQConsumer implements CommandLineRunner {
      */
     public void messageListener(){
 
-        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("SpringBootHHFconsumer");
+        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("SpringBootHHFconsumer2");
 
         consumer.setNamesrvAddr(namesrvAddr);
         try {

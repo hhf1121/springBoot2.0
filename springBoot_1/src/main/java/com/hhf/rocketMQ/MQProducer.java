@@ -31,6 +31,10 @@ public class MQProducer{
         @Value("${apache.rocketmq.namesrvAddr}")
         private String namesrvAddr;
 
+        /*
+            @PostConstruct修饰的方法会在服务器加载Servlet的时候运行，并且只会被服务器调用一次，类似于Serclet的inti()方法。
+             被@PostConstruct修饰的方法会在构造函数之后，init()方法之前运行
+         */
         @PostConstruct
         public void defaultMQProducer() {
             //生产者的组名
