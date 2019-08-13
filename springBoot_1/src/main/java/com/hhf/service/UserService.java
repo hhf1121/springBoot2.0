@@ -11,6 +11,8 @@ import java.util.concurrent.TimeUnit;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -24,6 +26,7 @@ import com.hhf.entity.User;
 import com.hhf.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import redis.clients.jedis.JedisCluster;
 
 @Slf4j
 @Service
@@ -34,6 +37,15 @@ public class UserService /*extends CommonDao*/{
 
 	@Autowired
 	StringRedisTemplate stringRedisTemplate;
+
+//	@Autowired
+//	RedisTemplate<String,String> redisTemplate;
+
+//	@Autowired
+//	private  JedisCluster jedisCluster;
+
+	@Autowired(required = false)
+	private Redisson redisson;
 	
 	@Transactional
 	public int insertUser(String userName,String passWord) {
@@ -66,6 +78,7 @@ public class UserService /*extends CommonDao*/{
 			//setIfAbsent,底层还是jedis的setNx
 			if(stringRedisTemplate.opsForValue().setIfAbsent("lock","up")){//拿到redis分布锁，去mysql查询
 				log.info("拿到锁了，去DB中查询...");
+                stringRedisTemplate.expire("lock",5,TimeUnit.SECONDS);//凭借经验设置自动失效时间，但存在问题。可能没有执行完，锁就失效。
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
@@ -74,7 +87,7 @@ public class UserService /*extends CommonDao*/{
 				List<User> findByName = userMapper.findByName(name);
 				String value = JSON.toJSONString(findByName);
 				stringRedisTemplate.opsForValue().set(name,value);//放入Redis
-				stringRedisTemplate.expire(name,10, TimeUnit.SECONDS);//设置失效时间
+				stringRedisTemplate.expire(name,600, TimeUnit.SECONDS);//设置失效时间
 				stringRedisTemplate.delete("lock");//释放掉锁：遇到异常的时候，锁无法释放。
 				return value;
 			}else{//没拿到锁，休眠200ms，再去拿。防止大量sql同时怼到db。 造成，缓存击穿
@@ -91,12 +104,53 @@ public class UserService /*extends CommonDao*/{
 
 
 	/**
+	 * 用redisson加锁
+	 * @param name
+	 * @return
+	 */
+	private String loadCacheRedisByRedisson(String name){
+		String lock="redissonKey";
+		RLock  rlock = redisson.getLock(lock);
+		String usekey = stringRedisTemplate.opsForValue().get(name);
+		if(null!= usekey){//redis缓存
+			log.info("读取redis缓存......");
+			return usekey;
+		}else {//同一时刻，只能有一个对象去DB中查询，防止缓存击穿
+			String value="";
+			try{
+				rlock.lock();//上锁           原理：redis上锁的时候，启动一个守护线程，定时去检测key是否存在，如果存在，就重新设置失效时间。
+				log.info("redisson拿到了锁，去DB中查询...");
+				List<User> findByName = userMapper.findByName(name);
+				value= JSON.toJSONString(findByName);
+				stringRedisTemplate.opsForValue().set(name, value);//放入Redis
+				stringRedisTemplate.expire(name, 300, TimeUnit.SECONDS);//设置失效时间
+				Thread.sleep(2000);//模拟时间
+				return value;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			} finally {
+				rlock.unlock();//解锁
+			}
+			try {
+				log.info("没有拿到锁，等待200ms...");
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			return loadCacheRedisByRedisson(name);//递归调用
+		}
+	}
+
+
+
+	/**
 	 * redis集群
 	 * @param yes
 	 * @return
 	 */
 	public List<User> queryVIP(Integer yes) {
-		stringRedisTemplate.opsForCluster();
+//		jedisCluster.set("clusterKey","倚天屠龙记");
+//		log.info(jedisCluster.get("clusterKey"));
 		return userMapper.findByType(yes);
 	}
 
