@@ -1,9 +1,13 @@
 package com.hhf;
 
 import org.mybatis.spring.annotation.MapperScan;
+import org.redisson.Redisson;
+import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 /**
@@ -25,5 +29,15 @@ public class App {
 	public static void main(String[] args) {
 		SpringApplication.run(App.class,args);
 	}
+
+
+
+	//初始化redisson
+//	@Bean
+//	public Redisson redisson(){
+//		Config config=new Config();
+//		config.useSingleServer().setAddress("redis://www.hhf.com:6379").setPassword("feixiang").setDatabase(0);
+//		return (Redisson) Redisson.create(config);
+//	}
 	
 }
