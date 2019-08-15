@@ -140,8 +140,24 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-data-redis</artifactId>
       </dependency>
+      <!-- 集成redisson 分布式加锁框架-->
+      <dependency>
+          <groupId>org.redisson</groupId>
+          <artifactId>redisson</artifactId>
+          <version>3.8.2</version>
+      </dependency>
+      <!--jedis -->
+      <dependency>
+          <groupId>redis.clients</groupId>
+          <artifactId>jedis</artifactId>
+      </dependency>
+      <!-- 集成mongodb，记录请求响应日志 -->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-data-mongodb</artifactId>
+      </dependency>
   </dependencies>
-  
+
   <!-- 打jar包配置、指定主入口 -->
 	 <build>
         <plugins>
