@@ -11,6 +11,7 @@ import java.io.Serializable;
 /**
  * Created by qcl on 2018/7/10.
  * ES相关
+ * 创建user索引、dosc类型、
  */
 @Document(indexName = "user", type = "docs", shards = 1, replicas = 0)
 public class UserES implements Serializable {
