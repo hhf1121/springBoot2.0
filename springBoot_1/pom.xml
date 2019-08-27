@@ -156,6 +156,11 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-data-mongodb</artifactId>
       </dependency>
+      <!-- 集成ES（6.0.0） -->
+     <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+      </dependency>
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->
