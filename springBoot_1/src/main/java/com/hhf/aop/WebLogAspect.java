@@ -22,13 +22,13 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 /**
- * aop：打印log工具类  
+ * aop：记录log工具类
  * @author Administrator
  *	更深层次：分布式日志收集（待续...）
  */
 
-@Aspect
-@Component
+//@Aspect
+//@Component
 public class WebLogAspect {
 
 	@Autowired
