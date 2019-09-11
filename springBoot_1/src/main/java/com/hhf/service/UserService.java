@@ -6,6 +6,7 @@ package com.hhf.service;
  */
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSON;
@@ -71,14 +72,18 @@ public class UserService /*extends CommonDao*/{
 	 */
 	private String loadCacheRedis(String name) {
 		String usekey = stringRedisTemplate.opsForValue().get(name);
+		String clientId= UUID.randomUUID().toString();
+		//为了防止锁块里的代码执行时间超出设置时长，导致解锁混乱。使用uuid，只能自己解自己的锁。
+		//在finally块中判断，value是否和clientId相等，然后再解锁。
 		if(null!= usekey){//redis缓存
 			log.info("读取redis缓存......");
 			return usekey;
 		}else{
 			//setIfAbsent,底层还是jedis的setNx
-			if(stringRedisTemplate.opsForValue().setIfAbsent("lock","up")){//拿到redis分布锁，去mysql查询
-				log.info("拿到锁了，去DB中查询...");
+			if(stringRedisTemplate.opsForValue().setIfAbsent("lock",clientId)){//拿到redis分布锁，去mysql查询
+				log.info("拿到锁了，去DB中查询...");//可能在这里挂掉了。
                 stringRedisTemplate.expire("lock",5,TimeUnit.SECONDS);//凭借经验设置自动失效时间，但存在问题。可能没有执行完，锁就失效。
+//				stringRedisTemplate.opsForValue().setIfAbsent("lock","up",5,TimeUnit.SECONDS);//高版本的redis，可同时设置超时时间。
 				try {
 					Thread.sleep(500);
 				} catch (InterruptedException e) {
