@@ -161,6 +161,12 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
       </dependency>
+    <!-- 自定义starter-->
+     <!-- <dependency>
+          <groupId>myspringbootstarter</groupId>
+          <artifactId>hhf-springboot-starter</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+      </dependency>-->
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->
