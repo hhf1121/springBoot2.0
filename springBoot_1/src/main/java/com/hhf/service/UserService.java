@@ -110,6 +110,8 @@ public class UserService /*extends CommonDao*/{
 
 	/**
 	 * 用redisson加锁
+     * 加锁后，想再优化性能，可把库存拆分成多段，放入DB中，自己玩自己的。
+     * 如果某一个分段库存用完，怎么解决？
 	 * @param name
 	 * @return
 	 */
@@ -123,7 +125,8 @@ public class UserService /*extends CommonDao*/{
 		}else {//同一时刻，只能有一个对象去DB中查询，防止缓存击穿
 			String value="";
 			try{
-				rlock.lock();//上锁           原理：redis上锁的时候，启动一个守护线程，定时去检测key是否存在，如果存在，就重新设置失效时间。
+				rlock.lock();//上锁           原理：redis上锁的时候，启动一个守护线程，定时去检测key是否存在，如果存在，就重新设置失效时间。(续命锁)
+//                rlock.tryLock(30,TimeUnit.SECONDS);//同上，指定时间
 				log.info("redisson拿到了锁，去DB中查询...");
 				List<User> findByName = userMapper.findByName(name);
 				value= JSON.toJSONString(findByName);
