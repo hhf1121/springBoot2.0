@@ -10,11 +10,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
+import springbootstart.service.TokenService;
 
 import java.util.Optional;
 
 @RestController
 public class MoneyController {
+
+    //自定义starter、中的service
+//    @Autowired
+//    private TokenService tokenService;
 
     //注入多参数对象
     @Autowired
@@ -49,6 +54,11 @@ public class MoneyController {
         }
         return null;
     }
+
+//    @GetMapping("/getStarter")
+//    public String getStarter(){
+//        return tokenService.getToken();
+//    }
 
 }
 
