@@ -112,6 +112,7 @@ public class UserService /*extends CommonDao*/{
 	 * 用redisson加锁
      * 加锁后，想再优化性能，可把库存拆分成多段，放入DB中，自己玩自己的。
      * 如果某一个分段库存用完，怎么解决？
+     * 如果是redis主从，怎么解决主从同步？考虑用zk替换redis
 	 * @param name
 	 * @return
 	 */
