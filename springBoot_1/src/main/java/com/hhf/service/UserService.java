@@ -164,6 +164,19 @@ public class UserService /*extends CommonDao*/{
 	}
 
 
+	public int insertDataByVue(User user) {
+		return userMapper.insertDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress());
+	}
 
-	
+	public int updateDataByVue(User user) {
+		return userMapper.updateDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress(),user.getId());
+	}
+
+	public User queryByVue(String userName, String passWord) {
+		return userMapper.queryByVue(userName,passWord);
+	}
+
+	public int deleteByVue(Long id) {
+		return userMapper.deleteByVue(id);
+	}
 }

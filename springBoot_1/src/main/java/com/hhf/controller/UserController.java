@@ -2,8 +2,11 @@ package com.hhf.controller;
 
 import java.util.Map;
 
+import com.hhf.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hhf.service.UserService;
@@ -43,6 +46,26 @@ public class UserController {
 	@RequestMapping("/actuator")
 	public Map<String,Object> actuator(){
 		return ResultUtils.getSuccessResult("actuator");
-	} 
-	
+	}
+
+	@RequestMapping(value="/insertDataByVue",method = RequestMethod.POST)
+	public Map<String,Object> insertDataByVue(@RequestBody User user){
+		return ResultUtils.getSuccessResult(userService.insertDataByVue(user));
+	}
+
+	@RequestMapping(value="/updateDataByVue",method = RequestMethod.POST)
+	public Map<String,Object> updateDataByVue(@RequestBody User user){
+		return ResultUtils.getSuccessResult(userService.updateDataByVue(user));
+	}
+
+	@RequestMapping("/queryByVue")
+	public Map<String,Object> queryByVue(String userName,String passWord){
+		return ResultUtils.getSuccessResult(userService.queryByVue(userName,passWord));
+	}
+
+	@RequestMapping("/deleteByVue")
+	public Map<String,Object> deleteByVue(Long id){
+		return ResultUtils.getSuccessResult(userService.deleteByVue(id));
+	}
+
 }
