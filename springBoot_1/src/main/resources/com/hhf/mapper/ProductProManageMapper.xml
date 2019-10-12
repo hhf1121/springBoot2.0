@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hhf.mapper.ProductProManageMapper" >
+  <resultMap id="BaseResultMap" type="com.hhf.entity.ProductProManage" >
+    <id column="manage_id" property="manageId" jdbcType="BIGINT" />
+    <result column="status" property="status" jdbcType="BIT" />
+    <result column="product_category" property="productCategory" jdbcType="TINYINT" />
+    <result column="product_type" property="productType" jdbcType="VARCHAR" />
+    <result column="product_name" property="productName" jdbcType="VARCHAR" />
+    <result column="start_weight" property="startWeight" jdbcType="DECIMAL" />
+    <result column="max_weight" property="maxWeight" jdbcType="DECIMAL" />
+    <result column="product_describe" property="productDescribe" jdbcType="VARCHAR" />
+    <result column="creater" property="creater" jdbcType="VARCHAR" />
+    <result column="creater_time" property="createrTime" jdbcType="TIMESTAMP" />
+    <result column="modifier" property="modifier" jdbcType="VARCHAR" />
+    <result column="modifier_time" property="modifierTime" jdbcType="TIMESTAMP" />
+    <result column="failure_time" property="failureTime" jdbcType="TIMESTAMP" />
+    <result column="effective_time" property="effectiveTime" jdbcType="TIMESTAMP" />
+    <result column="comp_code" property="compCode" jdbcType="VARCHAR" />
+    <result column="dept_code" property="deptCode" jdbcType="VARCHAR" />
+    <result column="is_delete" property="isDelete" jdbcType="BIT" />
+    <result column="latest_time" property="latestTime" jdbcType="TIMESTAMP" />
+    <result column="record_version" property="recordVersion" jdbcType="DECIMAL" />
+    <result column="user_ip" property="userIp" jdbcType="VARCHAR" />
+    <result column="column1" property="column1" jdbcType="VARCHAR" />
+    <result column="column2" property="column2" jdbcType="VARCHAR" />
+    <result column="column3" property="column3" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="TINYINT" />
+  </resultMap>
+  <sql id="Base_Column_List" >
+    manage_id, status, product_category, product_type, product_name, start_weight, max_weight, 
+    product_describe, creater, creater_time, modifier, modifier_time, failure_time, effective_time, 
+    comp_code, dept_code, is_delete, latest_time, record_version, user_ip, column1, column2, 
+    column3, sort
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from product_pro_manage
+    where manage_id = #{manageId,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from product_pro_manage
+    where manage_id = #{manageId,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.hhf.entity.ProductProManage" >
+    insert into product_pro_manage (manage_id, status, product_category, 
+      product_type, product_name, start_weight, 
+      max_weight, product_describe, creater, 
+      creater_time, modifier, modifier_time, 
+      failure_time, effective_time, comp_code, 
+      dept_code, is_delete, latest_time, 
+      record_version, user_ip, column1, 
+      column2, column3, sort
+      )
+    values (#{manageId,jdbcType=BIGINT}, #{status,jdbcType=BIT}, #{productCategory,jdbcType=TINYINT}, 
+      #{productType,jdbcType=VARCHAR}, #{productName,jdbcType=VARCHAR}, #{startWeight,jdbcType=DECIMAL}, 
+      #{maxWeight,jdbcType=DECIMAL}, #{productDescribe,jdbcType=VARCHAR}, #{creater,jdbcType=VARCHAR}, 
+      #{createrTime,jdbcType=TIMESTAMP}, #{modifier,jdbcType=VARCHAR}, #{modifierTime,jdbcType=TIMESTAMP}, 
+      #{failureTime,jdbcType=TIMESTAMP}, #{effectiveTime,jdbcType=TIMESTAMP}, #{compCode,jdbcType=VARCHAR}, 
+      #{deptCode,jdbcType=VARCHAR}, #{isDelete,jdbcType=BIT}, #{latestTime,jdbcType=TIMESTAMP}, 
+      #{recordVersion,jdbcType=DECIMAL}, #{userIp,jdbcType=VARCHAR}, #{column1,jdbcType=VARCHAR}, 
+      #{column2,jdbcType=VARCHAR}, #{column3,jdbcType=VARCHAR}, #{sort,jdbcType=TINYINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.hhf.entity.ProductProManage" >
+    insert into product_pro_manage
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="manageId != null" >
+        manage_id,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="productCategory != null" >
+        product_category,
+      </if>
+      <if test="productType != null" >
+        product_type,
+      </if>
+      <if test="productName != null" >
+        product_name,
+      </if>
+      <if test="startWeight != null" >
+        start_weight,
+      </if>
+      <if test="maxWeight != null" >
+        max_weight,
+      </if>
+      <if test="productDescribe != null" >
+        product_describe,
+      </if>
+      <if test="creater != null" >
+        creater,
+      </if>
+      <if test="createrTime != null" >
+        creater_time,
+      </if>
+      <if test="modifier != null" >
+        modifier,
+      </if>
+      <if test="modifierTime != null" >
+        modifier_time,
+      </if>
+      <if test="failureTime != null" >
+        failure_time,
+      </if>
+      <if test="effectiveTime != null" >
+        effective_time,
+      </if>
+      <if test="compCode != null" >
+        comp_code,
+      </if>
+      <if test="deptCode != null" >
+        dept_code,
+      </if>
+      <if test="isDelete != null" >
+        is_delete,
+      </if>
+      <if test="latestTime != null" >
+        latest_time,
+      </if>
+      <if test="recordVersion != null" >
+        record_version,
+      </if>
+      <if test="userIp != null" >
+        user_ip,
+      </if>
+      <if test="column1 != null" >
+        column1,
+      </if>
+      <if test="column2 != null" >
+        column2,
+      </if>
+      <if test="column3 != null" >
+        column3,
+      </if>
+      <if test="sort != null" >
+        sort,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="manageId != null" >
+        #{manageId,jdbcType=BIGINT},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=BIT},
+      </if>
+      <if test="productCategory != null" >
+        #{productCategory,jdbcType=TINYINT},
+      </if>
+      <if test="productType != null" >
+        #{productType,jdbcType=VARCHAR},
+      </if>
+      <if test="productName != null" >
+        #{productName,jdbcType=VARCHAR},
+      </if>
+      <if test="startWeight != null" >
+        #{startWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="maxWeight != null" >
+        #{maxWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="productDescribe != null" >
+        #{productDescribe,jdbcType=VARCHAR},
+      </if>
+      <if test="creater != null" >
+        #{creater,jdbcType=VARCHAR},
+      </if>
+      <if test="createrTime != null" >
+        #{createrTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifier != null" >
+        #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierTime != null" >
+        #{modifierTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="failureTime != null" >
+        #{failureTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="effectiveTime != null" >
+        #{effectiveTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="compCode != null" >
+        #{compCode,jdbcType=VARCHAR},
+      </if>
+      <if test="deptCode != null" >
+        #{deptCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        #{isDelete,jdbcType=BIT},
+      </if>
+      <if test="latestTime != null" >
+        #{latestTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="recordVersion != null" >
+        #{recordVersion,jdbcType=DECIMAL},
+      </if>
+      <if test="userIp != null" >
+        #{userIp,jdbcType=VARCHAR},
+      </if>
+      <if test="column1 != null" >
+        #{column1,jdbcType=VARCHAR},
+      </if>
+      <if test="column2 != null" >
+        #{column2,jdbcType=VARCHAR},
+      </if>
+      <if test="column3 != null" >
+        #{column3,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        #{sort,jdbcType=TINYINT},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.hhf.entity.ProductProManage" >
+    update product_pro_manage
+    <set >
+      <if test="status != null" >
+        status = #{status,jdbcType=BIT},
+      </if>
+      <if test="productCategory != null" >
+        product_category = #{productCategory,jdbcType=TINYINT},
+      </if>
+      <if test="productType != null" >
+        product_type = #{productType,jdbcType=VARCHAR},
+      </if>
+      <if test="productName != null" >
+        product_name = #{productName,jdbcType=VARCHAR},
+      </if>
+      <if test="startWeight != null" >
+        start_weight = #{startWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="maxWeight != null" >
+        max_weight = #{maxWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="productDescribe != null" >
+        product_describe = #{productDescribe,jdbcType=VARCHAR},
+      </if>
+      <if test="creater != null" >
+        creater = #{creater,jdbcType=VARCHAR},
+      </if>
+      <if test="createrTime != null" >
+        creater_time = #{createrTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="modifier != null" >
+        modifier = #{modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierTime != null" >
+        modifier_time = #{modifierTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="failureTime != null" >
+        failure_time = #{failureTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="effectiveTime != null" >
+        effective_time = #{effectiveTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="compCode != null" >
+        comp_code = #{compCode,jdbcType=VARCHAR},
+      </if>
+      <if test="deptCode != null" >
+        dept_code = #{deptCode,jdbcType=VARCHAR},
+      </if>
+      <if test="isDelete != null" >
+        is_delete = #{isDelete,jdbcType=BIT},
+      </if>
+      <if test="latestTime != null" >
+        latest_time = #{latestTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="recordVersion != null" >
+        record_version = #{recordVersion,jdbcType=DECIMAL},
+      </if>
+      <if test="userIp != null" >
+        user_ip = #{userIp,jdbcType=VARCHAR},
+      </if>
+      <if test="column1 != null" >
+        column1 = #{column1,jdbcType=VARCHAR},
+      </if>
+      <if test="column2 != null" >
+        column2 = #{column2,jdbcType=VARCHAR},
+      </if>
+      <if test="column3 != null" >
+        column3 = #{column3,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        sort = #{sort,jdbcType=TINYINT},
+      </if>
+    </set>
+    where manage_id = #{manageId,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.hhf.entity.ProductProManage" >
+    update product_pro_manage
+    set status = #{status,jdbcType=BIT},
+      product_category = #{productCategory,jdbcType=TINYINT},
+      product_type = #{productType,jdbcType=VARCHAR},
+      product_name = #{productName,jdbcType=VARCHAR},
+      start_weight = #{startWeight,jdbcType=DECIMAL},
+      max_weight = #{maxWeight,jdbcType=DECIMAL},
+      product_describe = #{productDescribe,jdbcType=VARCHAR},
+      creater = #{creater,jdbcType=VARCHAR},
+      creater_time = #{createrTime,jdbcType=TIMESTAMP},
+      modifier = #{modifier,jdbcType=VARCHAR},
+      modifier_time = #{modifierTime,jdbcType=TIMESTAMP},
+      failure_time = #{failureTime,jdbcType=TIMESTAMP},
+      effective_time = #{effectiveTime,jdbcType=TIMESTAMP},
+      comp_code = #{compCode,jdbcType=VARCHAR},
+      dept_code = #{deptCode,jdbcType=VARCHAR},
+      is_delete = #{isDelete,jdbcType=BIT},
+      latest_time = #{latestTime,jdbcType=TIMESTAMP},
+      record_version = #{recordVersion,jdbcType=DECIMAL},
+      user_ip = #{userIp,jdbcType=VARCHAR},
+      column1 = #{column1,jdbcType=VARCHAR},
+      column2 = #{column2,jdbcType=VARCHAR},
+      column3 = #{column3,jdbcType=VARCHAR},
+      sort = #{sort,jdbcType=TINYINT}
+    where manage_id = #{manageId,jdbcType=BIGINT}
+  </update>
+</mapper>

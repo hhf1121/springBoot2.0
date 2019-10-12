@@ -2,7 +2,9 @@ package com.hhf.controller;
 
 import java.util.Map;
 
+import com.hhf.entity.ProductProManage;
 import com.hhf.entity.User;
+import com.hhf.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -68,4 +70,13 @@ public class UserController {
 		return ResultUtils.getSuccessResult(userService.deleteByVue(id));
 	}
 
+	// mybatis - generato 插件
+	@Autowired
+	private ProductService productService;
+
+	@RequestMapping(value = "/save",method = RequestMethod.POST)
+	public Map<String,Object> saveProduct(@RequestBody ProductProManage productProManage){
+		productService.saveEntity(productProManage);
+		return ResultUtils.getSuccessResult("保存成功");
+	}
 }
