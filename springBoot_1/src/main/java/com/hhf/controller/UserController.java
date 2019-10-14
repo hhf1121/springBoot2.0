@@ -3,9 +3,11 @@ package com.hhf.controller;
 import java.util.Map;
 
 import com.hhf.entity.ProductProManage;
+import com.hhf.entity.ProductProManageExample;
 import com.hhf.entity.User;
 import com.hhf.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -74,9 +76,20 @@ public class UserController {
 	@Autowired
 	private ProductService productService;
 
-	@RequestMapping(value = "/save",method = RequestMethod.POST)
+	@RequestMapping(value = "/saveProduct",method = RequestMethod.POST)
 	public Map<String,Object> saveProduct(@RequestBody ProductProManage productProManage){
 		productService.saveEntity(productProManage);
 		return ResultUtils.getSuccessResult("保存成功");
 	}
+
+	@RequestMapping(value = "/queryProduct",method = RequestMethod.GET)
+	public Map<String,Object> queryProduct(ProductProManage productProManage){
+		ProductProManageExample example=new ProductProManageExample();
+		ProductProManageExample.Criteria criteria = example.createCriteria();
+		if(!StringUtils.isEmpty(productProManage.getProductName())){
+			criteria.andProductNameEqualTo(productProManage.getProductName());
+		}
+		return ResultUtils.getSuccessResult(productService.selectByExample(example));
+	}
+
 }

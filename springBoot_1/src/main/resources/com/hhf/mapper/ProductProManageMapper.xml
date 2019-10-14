@@ -27,12 +27,85 @@
     <result column="column3" property="column3" jdbcType="VARCHAR" />
     <result column="sort" property="sort" jdbcType="TINYINT" />
   </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
   <sql id="Base_Column_List" >
     manage_id, status, product_category, product_type, product_name, start_weight, max_weight, 
     product_describe, creater, creater_time, modifier, modifier_time, failure_time, effective_time, 
     comp_code, dept_code, is_delete, latest_time, record_version, user_ip, column1, column2, 
     column3, sort
   </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="com.hhf.entity.ProductProManageExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from product_pro_manage
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
     select 
     <include refid="Base_Column_List" />
@@ -42,6 +115,12 @@
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
     delete from product_pro_manage
     where manage_id = #{manageId,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="com.hhf.entity.ProductProManageExample" >
+    delete from product_pro_manage
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
   </delete>
   <insert id="insert" parameterType="com.hhf.entity.ProductProManage" >
     insert into product_pro_manage (manage_id, status, product_category, 
@@ -214,6 +293,122 @@
       </if>
     </trim>
   </insert>
+  <select id="countByExample" parameterType="com.hhf.entity.ProductProManageExample" resultType="java.lang.Integer" >
+    select count(*) from product_pro_manage
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update product_pro_manage
+    <set >
+      <if test="record.manageId != null" >
+        manage_id = #{record.manageId,jdbcType=BIGINT},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=BIT},
+      </if>
+      <if test="record.productCategory != null" >
+        product_category = #{record.productCategory,jdbcType=TINYINT},
+      </if>
+      <if test="record.productType != null" >
+        product_type = #{record.productType,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productName != null" >
+        product_name = #{record.productName,jdbcType=VARCHAR},
+      </if>
+      <if test="record.startWeight != null" >
+        start_weight = #{record.startWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="record.maxWeight != null" >
+        max_weight = #{record.maxWeight,jdbcType=DECIMAL},
+      </if>
+      <if test="record.productDescribe != null" >
+        product_describe = #{record.productDescribe,jdbcType=VARCHAR},
+      </if>
+      <if test="record.creater != null" >
+        creater = #{record.creater,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createrTime != null" >
+        creater_time = #{record.createrTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.modifier != null" >
+        modifier = #{record.modifier,jdbcType=VARCHAR},
+      </if>
+      <if test="record.modifierTime != null" >
+        modifier_time = #{record.modifierTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.failureTime != null" >
+        failure_time = #{record.failureTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.effectiveTime != null" >
+        effective_time = #{record.effectiveTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.compCode != null" >
+        comp_code = #{record.compCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deptCode != null" >
+        dept_code = #{record.deptCode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isDelete != null" >
+        is_delete = #{record.isDelete,jdbcType=BIT},
+      </if>
+      <if test="record.latestTime != null" >
+        latest_time = #{record.latestTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.recordVersion != null" >
+        record_version = #{record.recordVersion,jdbcType=DECIMAL},
+      </if>
+      <if test="record.userIp != null" >
+        user_ip = #{record.userIp,jdbcType=VARCHAR},
+      </if>
+      <if test="record.column1 != null" >
+        column1 = #{record.column1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.column2 != null" >
+        column2 = #{record.column2,jdbcType=VARCHAR},
+      </if>
+      <if test="record.column3 != null" >
+        column3 = #{record.column3,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sort != null" >
+        sort = #{record.sort,jdbcType=TINYINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update product_pro_manage
+    set manage_id = #{record.manageId,jdbcType=BIGINT},
+      status = #{record.status,jdbcType=BIT},
+      product_category = #{record.productCategory,jdbcType=TINYINT},
+      product_type = #{record.productType,jdbcType=VARCHAR},
+      product_name = #{record.productName,jdbcType=VARCHAR},
+      start_weight = #{record.startWeight,jdbcType=DECIMAL},
+      max_weight = #{record.maxWeight,jdbcType=DECIMAL},
+      product_describe = #{record.productDescribe,jdbcType=VARCHAR},
+      creater = #{record.creater,jdbcType=VARCHAR},
+      creater_time = #{record.createrTime,jdbcType=TIMESTAMP},
+      modifier = #{record.modifier,jdbcType=VARCHAR},
+      modifier_time = #{record.modifierTime,jdbcType=TIMESTAMP},
+      failure_time = #{record.failureTime,jdbcType=TIMESTAMP},
+      effective_time = #{record.effectiveTime,jdbcType=TIMESTAMP},
+      comp_code = #{record.compCode,jdbcType=VARCHAR},
+      dept_code = #{record.deptCode,jdbcType=VARCHAR},
+      is_delete = #{record.isDelete,jdbcType=BIT},
+      latest_time = #{record.latestTime,jdbcType=TIMESTAMP},
+      record_version = #{record.recordVersion,jdbcType=DECIMAL},
+      user_ip = #{record.userIp,jdbcType=VARCHAR},
+      column1 = #{record.column1,jdbcType=VARCHAR},
+      column2 = #{record.column2,jdbcType=VARCHAR},
+      column3 = #{record.column3,jdbcType=VARCHAR},
+      sort = #{record.sort,jdbcType=TINYINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
   <update id="updateByPrimaryKeySelective" parameterType="com.hhf.entity.ProductProManage" >
     update product_pro_manage
     <set >
