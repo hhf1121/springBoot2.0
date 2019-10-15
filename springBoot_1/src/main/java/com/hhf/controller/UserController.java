@@ -96,7 +96,8 @@ public class UserController {
 	public Map<String,Object> query(String name,int pageNum,int pageSize){
 		return ResultUtils.getSuccessResult(userService.query(name,pageNum,pageSize));
 	}
-	
+
+
 	@RequestMapping("user/queryVIP")
 	public Map<String,Object> queryUserByType(Integer yes){
 		return ResultUtils.getSuccessResult(userService.queryVIP(yes));
@@ -133,13 +134,13 @@ public class UserController {
 
 
 	// mybatis - generator 插件
-	@RequestMapping(value = "generator/saveProduct",method = RequestMethod.POST)
+	@RequestMapping(value = "config/generator/saveProduct",method = RequestMethod.POST)
 	public Map<String,Object> saveProduct(@RequestBody ProductProManage productProManage){
 		productService.saveEntity(productProManage);
 		return ResultUtils.getSuccessResult("保存成功");
 	}
 
-	@RequestMapping(value = "generator/queryProduct",method = RequestMethod.GET)
+	@RequestMapping(value = "config/generator/queryProduct",method = RequestMethod.GET)
 	public Map<String,Object> queryProduct(ProductProManage productProManage){
 		ProductProManageExample example=new ProductProManageExample();
 		ProductProManageExample.Criteria criteria = example.createCriteria();

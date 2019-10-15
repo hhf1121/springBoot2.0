@@ -166,6 +166,7 @@
           <artifactId>hhf-springboot-starter</artifactId>
           <version>0.0.1-SNAPSHOT</version>
       </dependency>-->
+
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->
@@ -198,7 +199,7 @@
                 <artifactId>mybatis-generator-maven-plugin</artifactId>
                 <version>1.3.2</version>
                 <configuration>
-                    <configurationFile>src/main/resources/generator/generatorConfig.xml</configurationFile>
+                    <configurationFile>src/main/resources/config/generator/generatorConfig.xml</configurationFile>
                     <overwrite>true</overwrite>
                     <verbose>true</verbose>
                 </configuration>
