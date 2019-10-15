@@ -6,6 +6,7 @@ import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
@@ -49,12 +50,10 @@ public class MQConsumer implements CommandLineRunner {
 
             // 订阅PushTopic下Tag为push的消息,都订阅消息
             consumer.subscribe("myTopic", "mytag");
-
             // 程序第一次启动从消息队列头获取数据
             consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
             //可以修改每次消费消息的数量，默认设置是每次消费一条
             consumer.setConsumeMessageBatchMaxSize(1);
-
             //在此监听中消费信息，并返回消费的状态信息
             consumer.registerMessageListener((MessageListenerConcurrently) (msgs, context) -> {
 
@@ -64,13 +63,13 @@ public class MQConsumer implements CommandLineRunner {
                         System.out.println(getClass().getName()+"接收到了消息："+new String(msg.getBody(),"utf-8"));
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
+                        return ConsumeConcurrentlyStatus.RECONSUME_LATER;
                     }
                 }
                 return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
             });
-
             consumer.start();
-
+            System.out.println("consumer1,启动成功...");
         } catch (Exception e) {
             e.printStackTrace();
         }

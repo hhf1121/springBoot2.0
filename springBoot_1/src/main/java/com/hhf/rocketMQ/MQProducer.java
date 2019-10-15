@@ -42,6 +42,7 @@ public class MQProducer{
             //指定NameServer地址，多个地址以 ; 隔开
             producer.setNamesrvAddr(namesrvAddr);
             producer.setVipChannelEnabled(false);
+//            producer.createTopic();
             try {
                 producer.start();
                 System.out.println("-------->:producer启动了");
