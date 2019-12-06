@@ -26,8 +26,8 @@ public interface UserMapper {
     int insertDataByVue(@Param("userName") String userName,@Param("passWord") String passWord, @Param("name") String name, @Param("address") String address);
 
 
-	@Update("UPDATE user set passWord=#{passWord},userName=#{userName},name=#{name},address=#{address} where id=#{id}")
-	int updateDataByVue(@Param("userName") String userName,@Param("passWord") String passWord, @Param("name") String name, @Param("address") String address,@Param("id") long id);
+	@Update("UPDATE user set passWord=#{passWord},userName=#{userName},name=#{name},address=#{address},yes=#{yes} where id=#{id}")
+	int updateDataByVue(@Param("userName") String userName,@Param("passWord") String passWord, @Param("name") String name, @Param("address") String address,@Param("yes") int yes,@Param("id") long id);
 
 	@Select("Select * from user where userName=#{userName} and passWord=#{passWord}")
 	User queryByVue(@Param("userName") String userName, @Param("passWord") String passWord);

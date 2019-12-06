@@ -170,7 +170,7 @@ public class UserService /*extends CommonDao*/{
 	}
 
 	public int updateDataByVue(User user) {
-		return userMapper.updateDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress(),user.getId());
+		return userMapper.updateDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress(),user.getYes(),user.getId());
 	}
 
 	public User queryByVue(String userName, String passWord) {
