@@ -1,42 +1,48 @@
 package com.hhf.entity;
 
-import java.sql.Timestamp;
-
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
+
+import java.time.LocalDateTime;
+
 /**
- * lombok   :通过修改字节码文件class
- * @author Administrator
+ * <p>
+ * 
+ * </p>
  *
+ * @author xubulong2
+ * @since 2019-12-17
  */
-
-@Slf4j//log4j
-@Data//相当于get、set
-//@Getter
-//@Setter
+@Data
+@Accessors(chain = true)
 public class User {
-	
 
-	private long id;
-	private String userName;
-	private String passWord;
-	private String name;
-	private String address;
-	private int yes;//权限、默认0。
-	private Timestamp createDate;
-	private String picPath;//头像路径
-	
-	
-	@Override
-	public String toString() {
-		return "User [id=" + id + ", userName=" + userName + ", passWord=" + passWord + ", name=" + name + ", address="
-				+ address + ", yes=" + yes + ", createDate=" + createDate + ", picPath=" + picPath + "]";
-	}
-	
-	public static void main(String[] args) {
-		User user=new User();
-		user.setId(1213126);
-		log.info(user.toString());
-	}
+    private static final long serialVersionUID = 1L;
+
+    @TableId(value = "id", type = IdType.AUTO)
+    private Integer id;
+
+    @TableField("userName")
+    private String userName;
+
+    @TableField("passWord")
+    private String passWord;
+
+    private String name;
+
+    private String address;
+
+    private Integer yes;
+
+    @TableField("createDate")
+    private LocalDateTime createDate;
+
+    @TableField("picPath")
+    private String picPath;
+
 
 }

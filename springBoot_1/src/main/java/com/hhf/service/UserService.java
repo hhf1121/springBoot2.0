@@ -12,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,7 @@ import redis.clients.jedis.JedisCluster;
 
 @Slf4j
 @Service
-public class UserService /*extends CommonDao*/{
+public class UserService extends ServiceImpl<UserMapper,User> {
 	
 	@Autowired
 	private UserMapper userMapper;
@@ -155,13 +157,17 @@ public class UserService /*extends CommonDao*/{
 
 	/**
 	 * redis集群
-	 * @param yes
+	 * @param user
 	 * @return
 	 */
-	public List<User> queryVIP(Integer yes) {
-//		jedisCluster.set("clusterKey","倚天屠龙记");
-//		log.info(jedisCluster.get("clusterKey"));
-		return userMapper.findByType(yes);
+	public List<User> queryVIP(User user) {
+		QueryWrapper<User> wrapper=new QueryWrapper<>();
+		wrapper.eq("yes",user.getYes());
+		if(user.getYes()==1){
+			return userMapper.findByType(user.getYes());
+		}
+		//使用Mp插件
+		return userMapper.selectList(wrapper);
 	}
 
 

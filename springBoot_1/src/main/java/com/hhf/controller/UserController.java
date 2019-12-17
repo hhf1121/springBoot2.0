@@ -18,10 +18,7 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.hhf.service.UserService;
 import com.hhf.utils.ResultUtils;
@@ -98,9 +95,9 @@ public class UserController {
 	}
 
 
-	@RequestMapping("user/queryVIP")
-	public Map<String,Object> queryUserByType(Integer yes){
-		return ResultUtils.getSuccessResult(userService.queryVIP(yes));
+	@PostMapping("user/queryVIP")
+	public Map<String,Object> queryUserByType(@RequestBody User user){
+		return ResultUtils.getSuccessResult(userService.queryVIP(user));
 	}
 	
 	@RequestMapping("user/insertUser")
