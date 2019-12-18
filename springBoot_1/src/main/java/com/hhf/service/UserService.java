@@ -186,7 +186,7 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 	}
 
 	public Map<String,Object> queryPage(User user) {
-		//使用Mp插件
+		//使用Mp插件(未完成)
 //		QueryWrapper<User> wrapper=new QueryWrapper<>();
 //		wrapper.eq("yes",user.getYes());
 //		IPage page=new Page(user.getPageIndex(),user.getPageSize());
