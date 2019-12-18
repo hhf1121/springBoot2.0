@@ -3,13 +3,12 @@
 <mapper namespace="com.hhf.mapper.UserMapper">
 
     <select id="selectPage" parameterType="com.hhf.entity.User" resultType="com.hhf.entity.User">
-        select * from  user where
+        select * from  user where 1=1
         <if test="yes !='' and yes !=null ">
-            yes=#{yes}
+           and yes=#{yes}
         </if>
         <if test="createDate !=null ">
-            createDate <![CDATA[ >= ]]> #{createDate,jdbcType=TIMESTAMP}
-
+          and  createDate <![CDATA[ >= ]]> #{createDate,jdbcType=TIMESTAMP}
         </if>
         <if test="pageIndex !=null and pageSize !=null ">
             LIMIT #{pageSize} OFFSET #{pageIndex}
@@ -17,12 +16,12 @@
     </select>
 
     <select id="selectCount" parameterType="com.hhf.entity.User" resultType="java.lang.Long">
-        select count(1) from  user where
+        select count(1) from  user where  1=1
         <if test="yes !='' and yes !=null ">
-            yes=#{yes}
+            and   yes=#{yes}
         </if>
         <if test="createDate !=null ">
-            createDate <![CDATA[ >= ]]> #{createDate,jdbcType=TIMESTAMP}
+            and   createDate <![CDATA[ >= ]]> #{createDate,jdbcType=TIMESTAMP}
         </if>
 
     </select>
