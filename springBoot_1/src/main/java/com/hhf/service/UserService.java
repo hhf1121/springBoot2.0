@@ -6,6 +6,7 @@ package com.hhf.service;
  */
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +14,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.hhf.utils.ResultUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -161,13 +165,7 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 	 * @return
 	 */
 	public List<User> queryVIP(User user) {
-		QueryWrapper<User> wrapper=new QueryWrapper<>();
-		wrapper.eq("yes",user.getYes());
-		if(user.getYes()==1){
-			return userMapper.findByType(user.getYes());
-		}
-		//使用Mp插件
-		return userMapper.selectList(wrapper);
+		return userMapper.findByType(user.getYes());
 	}
 
 
@@ -185,5 +183,21 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 
 	public int deleteByVue(Long id) {
 		return userMapper.deleteByVue(id);
+	}
+
+	public Map<String,Object> queryPage(User user) {
+		//使用Mp插件
+//		QueryWrapper<User> wrapper=new QueryWrapper<>();
+//		wrapper.eq("yes",user.getYes());
+//		IPage page=new Page(user.getPageIndex(),user.getPageSize());
+        user.setPageIndex((user.getPageIndex()-1)*user.getPageSize());
+        List<User> list=userMapper.selectPage(user);
+        Long count=userMapper.selectCount(user);
+        Page<User> page=new Page<>();
+        page.setRecords(list);
+        page.setTotal((long) count);
+        page.setCurrent(user.getPageIndex());
+        page.setSize(user.getPageSize());
+		return ResultUtils.getSuccessResult(page);
 	}
 }

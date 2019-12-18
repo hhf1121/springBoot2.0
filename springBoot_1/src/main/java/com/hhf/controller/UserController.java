@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
@@ -103,8 +105,13 @@ public class UserController {
 	@RequestMapping("user/insertUser")
 	public Map<String,Object> insertUser(String userName,String passWord){
 		return ResultUtils.getSuccessResult(userService.insertUser(userName, passWord));
-	} 
+	}
 
+	//分页
+	@PostMapping("user/queryPage")
+	public Map<String,Object> queryPage(@RequestBody User user){
+		return ResultUtils.getSuccessResult(userService.queryPage(user));
+	}
 
 	//VUE-对应接口
 	@RequestMapping(value="vue/insertDataByVue",method = RequestMethod.POST)

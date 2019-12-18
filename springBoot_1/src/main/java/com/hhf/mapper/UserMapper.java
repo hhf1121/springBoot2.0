@@ -41,4 +41,7 @@ public interface UserMapper extends BaseMapper<User> {
     @Delete("delete from user where id=#{id}")
     int deleteByVue(@Param("id") Long id);
 
+    List<User> selectPage(User user);
+
+    Long selectCount(User user);
 }

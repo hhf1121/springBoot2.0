@@ -7,7 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 
-import java.time.LocalDateTime;
+import java.util.Date;
+
 
 /**
  * <p>
@@ -39,10 +40,16 @@ public class User {
     private Integer yes;
 
     @TableField("createDate")
-    private LocalDateTime createDate;
+    private Date createDate;
 
     @TableField("picPath")
     private String picPath;
+
+    @TableField(exist = false)
+    private Integer pageIndex;
+
+    @TableField(exist = false)
+    private Integer pageSize;
 
 
 }
