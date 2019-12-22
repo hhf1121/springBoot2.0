@@ -28,8 +28,8 @@ import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
+//import com.github.pagehelper.PageHelper;
+//import com.github.pagehelper.PageInfo;
 import com.hhf.entity.User;
 import com.hhf.mapper.UserMapper;
 
@@ -57,20 +57,23 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 	
 	@Transactional
 	public int insertUser(String userName,String passWord) {
-		int insert = userMapper.insert(userName, passWord);
+	    User user=new User();
+	    user.setUserName(userName);
+	    user.setPassWord(passWord);
+		int insert = userMapper.insert(user);
 		log.info("----------insertUser:service-----------");
 		int i=1/Integer.parseInt(passWord);
 		return insert;
 	}
 	
-	public PageInfo<User> query(String name,int pageNum,int pageSize) {
-		log.info("----------queryUserByPage:service-----------");
-		//使用pagehelper:生产page信息
-		PageHelper.startPage(pageNum, pageSize);//底层：改写（拼接）sql
-		List<User> findByName = JSONObject.parseArray(loadCacheRedis(name), User.class);
-		PageInfo<User> result=new PageInfo<User>(findByName);
-		return result;
-	}
+//	public PageInfo<User> query(String name,int pageNum,int pageSize) {
+//		log.info("----------queryUserByPage:service-----------");
+//		//使用pagehelper:生产page信息
+//		PageHelper.startPage(pageNum, pageSize);//底层：改写（拼接）sql
+//		List<User> findByName = JSONObject.parseArray(loadCacheRedis(name), User.class);
+//		PageInfo<User> result=new PageInfo<User>(findByName);
+//		return result;
+//	}
 
 	/**
 	 * 读取redis缓存，使用redis分布式锁
@@ -96,7 +99,9 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				List<User> findByName = userMapper.findByName(name);
+				QueryWrapper<User> wrapper=new QueryWrapper<>();
+				wrapper.like("name",name);
+				List<User> findByName = userMapper.selectList(wrapper);
 				String value = JSON.toJSONString(findByName);
 				stringRedisTemplate.opsForValue().set(name,value);//放入Redis
 				stringRedisTemplate.expire(name,600, TimeUnit.SECONDS);//设置失效时间
@@ -136,7 +141,9 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 				rlock.lock();//上锁           原理：redis上锁的时候，启动一个守护线程，定时去检测key是否存在，如果存在，就重新设置失效时间。(续命锁)
 //                rlock.tryLock(30,TimeUnit.SECONDS);//同上，指定时间
 				log.info("redisson拿到了锁，去DB中查询...");
-				List<User> findByName = userMapper.findByName(name);
+                QueryWrapper<User> wrapper=new QueryWrapper<>();
+                wrapper.like("name",name);
+                List<User> findByName = userMapper.selectList(wrapper);
 				value= JSON.toJSONString(findByName);
 				stringRedisTemplate.opsForValue().set(name, value);//放入Redis
 				stringRedisTemplate.expire(name, 300, TimeUnit.SECONDS);//设置失效时间
@@ -165,39 +172,48 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 	 * @return
 	 */
 	public List<User> queryVIP(User user) {
-		return userMapper.findByType(user.getYes());
+        QueryWrapper<User> wrapper=new QueryWrapper<>();
+        wrapper.like("yes",user.getYes());
+		return userMapper.selectList(wrapper);
 	}
 
 
 	public int insertDataByVue(User user) {
-		return userMapper.insertDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress());
+		return userMapper.insert(user);
 	}
 
 	public int updateDataByVue(User user) {
-		return userMapper.updateDataByVue(user.getUserName(),user.getPassWord(),user.getName(),user.getAddress(),user.getYes(),user.getId());
+	    QueryWrapper<User> wrapper=new QueryWrapper<>();
+	    wrapper.eq("id",user.getId());
+		return userMapper.update(user,wrapper);
 	}
 
 	public User queryByVue(String userName, String passWord) {
-		return userMapper.queryByVue(userName,passWord);
+        QueryWrapper<User> wrapper=new QueryWrapper<>();
+        wrapper.eq("userName",userName).eq("passWord",passWord);
+		return userMapper.selectOne(wrapper);
 	}
 
 	public int deleteByVue(Long id) {
-		return userMapper.deleteByVue(id);
+		return userMapper.deleteById(id);
 	}
 
-	public Map<String,Object> queryPage(User user) {
-		//使用Mp插件(未完成)
-//		QueryWrapper<User> wrapper=new QueryWrapper<>();
-//		wrapper.eq("yes",user.getYes());
-//		IPage page=new Page(user.getPageIndex(),user.getPageSize());
-        user.setPageIndex((user.getPageIndex()-1)*user.getPageSize());
-        List<User> list=userMapper.selectPage(user);
-        Long count=userMapper.selectCount(user);
-        Page<User> page=new Page<>();
-        page.setRecords(list);
-        page.setTotal((long) count);
-        page.setCurrent(user.getPageIndex());
-        page.setSize(user.getPageSize());
-		return ResultUtils.getSuccessResult(page);
+	public Map<String,Object>  queryPage(User user) {
+		//1.MP插件
+		QueryWrapper<User> wrapper=new QueryWrapper<>();
+		if(user.getYes()!=null) wrapper.eq("yes",user.getYes());
+		if(user.getCreateDate()!=null) wrapper.eq("createDate",user.getCreateDate());
+		IPage<User> page=new Page(user.getPageIndex(),user.getPageSize());
+		IPage<User> iPage = userMapper.selectPage(page, wrapper);
+		//2.手写分页
+//        user.setPageIndex((user.getPageIndex()-1)*user.getPageSize());
+//        List<User> list=userMapper.selectPage(user);
+//        Long count=userMapper.selectCount(user);
+//        Page<User> page=new Page<>();
+//        page.setRecords(list);
+//        page.setTotal((long) count);
+//        page.setCurrent(user.getPageIndex());
+//        page.setSize(user.getPageSize());
+		return ResultUtils.getSuccessResult(iPage);
 	}
 }

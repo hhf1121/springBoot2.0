@@ -31,7 +31,7 @@ import java.util.TimeZone;
 //@EnableAsync//开启异步调用
 @EntityScan("com.hhf.entity")//支持jpa
 @EnableJpaRepositories(basePackages={"com.hhf.mapper"})//支持jpa：1.jpa扫描接口
-@MapperScan(basePackages= {"com.hhf.mapper"})
+//@MapperScan(basePackages= {"com.hhf.mapper"})
 public class App {
 
 	public static void main(String[] args) {
