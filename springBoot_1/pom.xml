@@ -118,11 +118,17 @@
 	    <artifactId>spring-boot-starter-actuator</artifactId>
 	</dependency>
 	<!-- 依赖/用dubbo远程调用rpc -->
-	<!--<dependency>
+	<dependency>
       <groupId>com.hhf</groupId>
       <artifactId>springBoot2.0_dubbo_provider</artifactId>
       <version>0.0.1-SNAPSHOT</version>
-  </dependency>-->
+        <exclusions><!-- 由于集成了mybatisPlus ，需要排除分页依赖 -->
+            <exclusion>
+                    <groupId>com.github.pagehelper</groupId>
+                    <artifactId>pagehelper-spring-boot-starter</artifactId>
+            </exclusion>
+        </exclusions>
+  </dependency>
       <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-data-jpa -->
       <dependency>
           <groupId>org.springframework.boot</groupId>

@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 //import com.hhf.dubbo.DubboService;
+import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
 import com.hhf.entity.User;
@@ -50,8 +51,8 @@ public class UserController {
 	@Autowired
 	private MQProducer mqProducer;//mqService
 
-//	@Autowired
-//	private DubboService dubboService;//dubboService
+	@Autowired
+	private DubboService dubboService;//dubboService
 
 	@Autowired
 	private AsynService asynService;//异步service
@@ -74,10 +75,10 @@ public class UserController {
 		}
 	}
 
-//	@RequestMapping("dubbo/dubboData")
-//	public Map<String,Object> getDataByDubbo(Integer yes){
-//		return dubboService.dubboData(yes);
-//	}
+	@RequestMapping("dubbo/dubboData")
+	public Map<String,Object> getDataByDubbo(Integer yes){
+		return dubboService.dubboData(yes);
+	}
 
 	@RequestMapping("asyn/addObject")
 	public String addObject() throws InterruptedException, ExecutionException {
