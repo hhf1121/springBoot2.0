@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.List;
 import java.util.Map;
 
 
@@ -34,7 +35,18 @@ public class UserNoteService implements IUserNoteService {
         if(!StringUtils.isEmpty(userNote.getNoteRemark())){
             queryWrapper.like("note_remark",userNote.getNoteRemark());
         }
-        return userNoteMapper.selectPage(page,queryWrapper);
+        if(!StringUtils.isEmpty(userNote.getNoteTitle())) {
+            queryWrapper.like("note_title",userNote.getNoteTitle());
+        }
+        if(userNote.getNoteMoney()!=null){
+            queryWrapper.ge("note_money",userNote.getNoteMoney());
+        }
+        IPage<UserNote> iPage = userNoteMapper.selectPage(page, queryWrapper);
+        List<UserNote> records = iPage.getRecords();
+        for (UserNote note:records){
+            note.setIdStr(note.getId()+"");
+        }
+        return iPage;
     }
 
     @Override
@@ -48,10 +60,25 @@ public class UserNoteService implements IUserNoteService {
 
     @Override
     public Map<String, Object> updateNote(UserNote userNote) {
-        int i = userNoteMapper.updateById(userNote);
+        UserNote update=new UserNote();
+        update.setNoteMoney(userNote.getNoteMoney());
+        update.setNoteType(userNote.getNoteType());
+        update.setNoteRemark(userNote.getNoteRemark());
+        update.setId(userNote.getId());
+        int i = userNoteMapper.updateById(update);
         if(i>0){
             return ResultUtils.getSuccessResult("更新成功");
         }
         return ResultUtils.getFailResult("更新失败");
+    }
+
+    @Override
+    public Map<String, Object> deleteNotes(UserNote userNote) {
+        List<String> ids = userNote.getIds();
+        int i = userNoteMapper.deleteBatchIds(ids);
+        if(i==ids.size()){
+            return ResultUtils.getSuccessResult("删除成功");
+        }
+        return ResultUtils.getFailResult("删除失败");
     }
 }

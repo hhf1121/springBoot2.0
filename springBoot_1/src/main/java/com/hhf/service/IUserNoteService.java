@@ -12,4 +12,6 @@ public interface IUserNoteService {
     Map<String,Object> createNote(UserNote userNote);
 
     Map<String,Object> updateNote(UserNote userNote);
+
+    Map<String,Object> deleteNotes(UserNote userNote);
 }

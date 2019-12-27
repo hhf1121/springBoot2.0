@@ -45,4 +45,13 @@ public class NoteController {
         }
     }
 
+    @PostMapping("deleteNotes")
+    public Map<String,Object> deleteNotes(@RequestBody UserNote userNote){
+        try {
+            return userNoteService.deleteNotes(userNote);
+        }catch (Exception e){
+            return ResultUtils.getFailResult(e.getMessage());
+        }
+    }
+
 }

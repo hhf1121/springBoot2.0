@@ -8,6 +8,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class UserNote {
@@ -50,5 +51,12 @@ public class UserNote {
     //页面条数
     @TableField(exist = false)
     private Integer pageSize;
+
+    //ids
+    @TableField(exist = false)
+    private List<String> ids;
+
+    @TableField(exist = false)
+    private String idStr;
 
 }
