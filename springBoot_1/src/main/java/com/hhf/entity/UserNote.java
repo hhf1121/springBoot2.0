@@ -20,6 +20,8 @@ public class UserNote {
 
     private Integer noteType;
 
+    private String noteAddress;
+
     private String noteName;
 
     private String noteRemark;
