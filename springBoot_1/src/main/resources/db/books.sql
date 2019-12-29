@@ -177,6 +177,7 @@ CREATE TABLE `user_note` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键id',
   `note_title` varchar(10) DEFAULT '' COMMENT '标题',
   `note_type` tinyint(1) DEFAULT '1' COMMENT '花销类型',
+  `note_address` varchar(100) default '河南省' COMMENT '地址',
   `note_name` varchar(50) CHARACTER SET utf8mb4 DEFAULT '' COMMENT '用户名字',
   `note_remark` varchar(255) DEFAULT '' COMMENT '备注',
   `note_money` decimal(10,2) DEFAULT '0.00' COMMENT '金额',
@@ -192,7 +193,5 @@ CREATE TABLE `user_note` (
 -- ----------------------------
 -- Records of user_note
 -- ----------------------------
-INSERT INTO `user_note` VALUES ('1', '测试标题', '4', '贺鸿飞', '我旅行花了1.1元', '1.10', '2019-12-25 10:09:40', '贺鸿飞', '2019-12-27 18:17:30', 'system', '0', '0');
-INSERT INTO `user_note` VALUES ('2', '标题2', '1', '测试组', '我买衣服花了99.9元', '99.90', '2019-12-26 12:25:35', '', '2019-12-27 18:17:27', 'system', '0', '0');
-INSERT INTO `user_note` VALUES ('1210508344528019458', '我是标题', '3', '', '详细备注', '123.00', '2019-12-27 18:30:54', 'system', null, null, '0', '1');
-INSERT INTO `user_note` VALUES ('1210508367135318018', '我是标题', '3', '', '详细备注', '123.00', '2019-12-27 18:31:00', 'system', null, null, '0', '1');
+INSERT INTO `user_note` VALUES ('1', '测试标题', '4','上海', '贺鸿飞', '我旅行花了1.1元', '1.10', '2019-12-25 10:09:40', '贺鸿飞', '2019-12-27 18:17:30', 'system', '0', '0');
+INSERT INTO `user_note` VALUES ('2', '标题2', '1', '河南省','测试组', '我买衣服花了99.9元', '99.90', '2019-12-26 12:25:35', '', '2019-12-27 18:17:27', 'system', '0', '0');
