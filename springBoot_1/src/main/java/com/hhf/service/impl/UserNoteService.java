@@ -64,7 +64,7 @@ public class UserNoteService implements IUserNoteService {
         update.setNoteMoney(userNote.getNoteMoney());
         update.setNoteType(userNote.getNoteType());
         update.setNoteRemark(userNote.getNoteRemark());
-        update.setId(userNote.getId());
+        update.setId(Long.parseLong(userNote.getIdStr()));
         int i = userNoteMapper.updateById(update);
         if(i>0){
             return ResultUtils.getSuccessResult("更新成功");

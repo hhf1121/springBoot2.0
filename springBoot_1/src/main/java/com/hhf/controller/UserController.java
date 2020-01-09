@@ -26,6 +26,8 @@ import org.springframework.web.bind.annotation.*;
 import com.hhf.service.UserService;
 import com.hhf.utils.ResultUtils;
 
+import javax.servlet.http.HttpSession;
+
 /**
  * userController
  * 集成mybatis、actuator 监控中心、PageHelper
@@ -129,7 +131,9 @@ public class UserController {
     //VUE-对应接口
     @RequestMapping("vue/queryByVue")
     public Map<String, Object> queryByVue(String userName, String passWord) {
-        return ResultUtils.getSuccessResult(userService.queryByVue(userName, passWord));
+        User user = userService.queryByVue(userName, passWord);
+//        session.setAttribute("user",user);
+        return ResultUtils.getSuccessResult(user);
     }
 
     @RequestMapping("vue/deleteByVue")
