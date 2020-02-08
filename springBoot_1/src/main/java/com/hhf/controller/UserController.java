@@ -1,12 +1,5 @@
 package com.hhf.controller;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
-
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-//import com.hhf.dubbo.DubboService;
 import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
@@ -15,6 +8,8 @@ import com.hhf.rocketMQ.MQProducer;
 import com.hhf.service.AsynService;
 import com.hhf.service.JDBCService;
 import com.hhf.service.ProductService;
+import com.hhf.service.UserService;
+import com.hhf.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -23,8 +18,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import com.hhf.service.UserService;
-import com.hhf.utils.ResultUtils;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+//import com.hhf.dubbo.DubboService;
 
 /**
  * userController
@@ -170,5 +168,14 @@ public class UserController {
 		int j=1/i;
 		return "success:"+j;
 	}
+
+    //当前用户
+    @GetMapping("/getCurrentUser")
+    public User getCurrentUser(String id){
+	    if(StringUtils.isEmpty(id))
+	        return null;
+	    return userService.getCurrentUser(Long.valueOf(id));
+    }
+
 
 }

@@ -1,15 +1,20 @@
 package com.hhf;
 
+import com.hhf.interceptor.UserLoginInterceptor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.redisson.Redisson;
 import org.redisson.config.Config;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
@@ -32,13 +37,25 @@ import java.util.TimeZone;
 @EntityScan("com.hhf.entity")//支持jpa
 @EnableJpaRepositories(basePackages={"com.hhf.mapper"})//支持jpa：1.jpa扫描接口
 //@MapperScan(basePackages= {"com.hhf.mapper"})
-public class App {
+//@EnableDiscoveryClient
+public class App implements WebMvcConfigurer {
+
+	@Autowired
+	private UserLoginInterceptor userLoginInterceptor;
 
 	public static void main(String[] args) {
 		SpringApplication.run(App.class,args);
 	}
 
-
+	@Override
+	public void addInterceptors(InterceptorRegistry registry){
+		//添加对用户是否登录的拦截器，并添加过滤项、排除项
+//		registry.addInterceptor(userLoginInterceptor).addPathPatterns("/**");
+//				.excludePathPatterns("/css/**","/js/**","/images/**")//排除样式、脚本、图片等资源文件
+//				.excludePathPatterns("/wechatplatformuser/loginRBAC.html")//排除登录页面
+//				.excludePathPatterns("/wechatplatformuser/defaultKaptcha")//排除验证码
+//				.excludePathPatterns("/wechatplatformuser/loginRBAC");//排除用户点击登录按钮
+	}
 
 	//初始化redisson
 //	@Bean

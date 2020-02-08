@@ -34,6 +34,7 @@ import com.hhf.entity.User;
 import com.hhf.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisCluster;
 
 @Slf4j
@@ -215,5 +216,13 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 //        page.setCurrent(user.getPageIndex());
 //        page.setSize(user.getPageSize());
 		return ResultUtils.getSuccessResult(iPage);
+	}
+
+    public User getCurrentUser(Long id) {
+		User user = userMapper.selectById(id);
+		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
+			return user;
+		}
+		return null;
 	}
 }

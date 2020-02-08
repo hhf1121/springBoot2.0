@@ -20,7 +20,7 @@ public class UserES implements Serializable {
     @Id
     private Long id;//主键
 
-    @Field(type = FieldType.text, analyzer = "ik_max_word")
+//    @Field(type = FieldType.text, analyzer = "ik_max_word")
     private String userName;
     private String userPhone;
 
