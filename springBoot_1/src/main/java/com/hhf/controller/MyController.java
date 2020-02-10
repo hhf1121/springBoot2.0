@@ -3,6 +3,7 @@ package com.hhf.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.hhf.api.providerApi;
 import com.hhf.dubbo.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -24,8 +25,13 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/my")
 public class MyController {
 
+	//使用dubbo调用
 	@Autowired
 	private DubboService dubboService;
+
+	//使用feign客户端调用
+	@Autowired
+	private providerApi providerapi;
 	
 	//获取application配置文件里面的值：初始化的时候
 	@Value("${disconf.name}")
@@ -55,6 +61,11 @@ public class MyController {
 	@GetMapping("nacos/ribbon")
 	public  Map<String, Object> ribbon(Integer yes){
 		return dubboService.ribbon(yes);
+	}
+
+	@GetMapping("nacos/feign")
+	public  Map<String, Object> feign(Integer yes){
+		return providerapi.getDataByFeign(yes);
 	}
 
 }

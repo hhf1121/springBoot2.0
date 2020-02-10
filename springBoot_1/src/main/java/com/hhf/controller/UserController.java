@@ -173,11 +173,6 @@ public class UserController {
         return "success:" + j;
     }
 
-    @GetMapping("/getCurrentUser")
-    public User getCurrentUser(String id) {
-        return userService.getCurrentUserByid(id);
-    }
-
     //当前用户
     @GetMapping("/getCurrentUser")
     public User getCurrentUser(String id){

@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
@@ -38,6 +39,7 @@ import java.util.TimeZone;
 @EnableJpaRepositories(basePackages={"com.hhf.mapper"})//支持jpa：1.jpa扫描接口
 //@MapperScan(basePackages= {"com.hhf.mapper"})
 //@EnableDiscoveryClient
+@EnableFeignClients //开启fegin调用
 public class App implements WebMvcConfigurer {
 
 	@Autowired

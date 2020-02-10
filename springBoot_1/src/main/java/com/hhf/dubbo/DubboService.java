@@ -2,6 +2,7 @@ package com.hhf.dubbo;
 
 import java.util.Map;
 
+import com.hhf.api.IDubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -28,7 +29,7 @@ public class DubboService{
 	}
 
 	public Map<String, Object> ribbon(Integer yes){
-		ResponseEntity<Map> responseEntity= restTemplate.getForEntity("http://springBoot-dubbo/getDate?yes="+yes, Map.class);
+		ResponseEntity<Map> responseEntity= restTemplate.getForEntity("http://provider-service/getDate?yes="+yes, Map.class);
 		Map<String, Object> result = responseEntity.getBody();
 		return result;
 	}

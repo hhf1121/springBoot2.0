@@ -32,6 +32,12 @@
     </dependencyManagement>
 
   <dependencies>
+      <!-- 引入 feign-client -->
+      <dependency>
+          <groupId>org.springframework.cloud</groupId>
+          <artifactId>spring-cloud-starter-openfeign</artifactId>
+      </dependency>
+
       <!--nacos配置中心-->
       <dependency>
           <groupId>com.alibaba.cloud</groupId>
@@ -161,9 +167,9 @@
 	</dependency>
 	<!-- 依赖/用dubbo远程调用rpc -->
 	<dependency>
-      <groupId>com.hhf</groupId>
-      <artifactId>springBoot2.0_dubbo_provider</artifactId>
-      <version>0.0.1-SNAPSHOT</version>
+        <groupId>com.hhf</groupId>
+        <artifactId>provider_api</artifactId>
+        <version>1.0-SNAPSHOT</version>
         <exclusions><!-- 由于集成了mybatisPlus ，需要排除分页依赖 -->
             <exclusion>
                     <groupId>com.github.pagehelper</groupId>
