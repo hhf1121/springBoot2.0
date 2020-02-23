@@ -32,7 +32,11 @@ public class MyController {
 	//使用feign客户端调用
 	@Autowired
 	private providerApi providerapi;
-	
+
+	//使用template调用
+    @Autowired
+    private RestTemplate restTemplate;
+
 	//获取application配置文件里面的值：初始化的时候
 	@Value("${disconf.name}")
 	private String name;
@@ -57,12 +61,21 @@ public class MyController {
 	public String getConfig(){
 		return this.value;
 	}
+
+//	template调用:加了@LoadBalanced之后，负载均衡、从注册中心服务名称上找
+    @GetMapping("nacos/template")
+    public  Map<String, Object> template(Integer yes){
+        ResponseEntity<Map> responseEntity= restTemplate.getForEntity("http://provider-service/getDateBySentinel?yes="+yes, Map.class);
+        Map<String, Object> body = responseEntity.getBody();
+    return body;
+}
+
 //	ribbon客户端调用
 	@GetMapping("nacos/ribbon")
 	public  Map<String, Object> ribbon(Integer yes){
 		return dubboService.ribbon(yes);
 	}
-
+//  feign调用
 	@GetMapping("nacos/feign")
 	public  Map<String, Object> feign(Integer yes){
 		return providerapi.getDataByFeign(yes);
