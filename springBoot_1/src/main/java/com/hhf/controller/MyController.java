@@ -5,6 +5,8 @@ import java.util.Map;
 
 import com.hhf.api.providerApi;
 import com.hhf.dubbo.DubboService;
+import com.hhf.service.IMyService;
+import org.hibernate.annotations.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -36,6 +38,9 @@ public class MyController {
 	//使用template调用
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private IMyService myService;
 
 	//获取application配置文件里面的值：初始化的时候
 	@Value("${disconf.name}")
@@ -80,5 +85,10 @@ public class MyController {
 	public  Map<String, Object> feign(Integer yes){
 		return providerapi.getDataByFeign(yes);
 	}
+
+	@GetMapping("isTranaction")
+    public Map<String,Object> isTranaction(Long id){
+	    return myService.isTranaction(id);
+    }
 
 }

@@ -9,11 +9,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -33,13 +35,14 @@ import java.util.TimeZone;
 //@EnableAutoConfiguration
 //@ComponentScan("com.hhf.controller")//扫描此包下的所有controller、并启动
 //第三种启动方式：(扫描的类，在同包或之下。)
-@SpringBootApplication
+@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 //@EnableAsync//开启异步调用
 @EntityScan("com.hhf.entity")//支持jpa
 @EnableJpaRepositories(basePackages={"com.hhf.mapper"})//支持jpa：1.jpa扫描接口
 //@MapperScan(basePackages= {"com.hhf.mapper"})
 //@EnableDiscoveryClient
 @EnableFeignClients //开启fegin调用
+//@EnableTransactionManagement//开启本地事务，配合@Transactional
 public class App implements WebMvcConfigurer {
 
 	@Autowired
