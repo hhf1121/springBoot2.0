@@ -223,6 +223,15 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
 			return user;
 		}
-		return null;
+		return new User();
 	}
+
+	public String getCurrentUserStr(Long id) {
+		User user = userMapper.selectById(id);
+		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
+			return JSONObject.toJSONString(user);
+		}
+		return "未找到user";
+	}
+
 }

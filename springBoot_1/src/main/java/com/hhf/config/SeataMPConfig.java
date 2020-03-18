@@ -12,6 +12,9 @@ import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
 
+/**
+ * seata-mybatisPlus配置数据源，支持分布式事务
+ */
 @Configuration
 public class SeataMPConfig {
     @Autowired(required = true)

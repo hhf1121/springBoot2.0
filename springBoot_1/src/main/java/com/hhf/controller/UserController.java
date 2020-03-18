@@ -182,4 +182,13 @@ public class UserController {
     }
 
 
+    //当前用户
+    @GetMapping("/getCurrentUserStr")
+    public String getCurrentUserStr(String id){
+        if(StringUtils.isEmpty(id))
+            return null;
+        return userService.getCurrentUserStr(Long.valueOf(id));
+    }
+
+
 }
