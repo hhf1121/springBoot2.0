@@ -1,7 +1,7 @@
 package com.ribbonconfig;
 
-import com.hhf.myRibbonRule.TheSameClusterPriorityWithVersionRule;
-import com.hhf.myRibbonRule.TulingWeightedRule;
+
+import com.hhf.myrule.TulingWeightedRule;
 import com.netflix.loadbalancer.IRule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

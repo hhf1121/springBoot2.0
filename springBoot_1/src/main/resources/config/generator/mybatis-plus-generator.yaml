@@ -1,0 +1,33 @@
+author: xubulong
+open: false
+outputDir: src/main/java
+serviceName: "%sService"
+controllerModule: configCenter
+
+dataSource:
+  url: jdbc:mysql://127.0.0.1:3306/books?characterEncoding=utf8
+  driverName: com.mysql.jdbc.Driver
+  username: root
+  password: feixiang
+  dbType: MYSQL
+
+packageInfo:
+  moduleName: configCenter
+  entity: model
+  parent: com.hhf
+
+strategy:
+  naming: underline_to_camel
+  columnNaming: underline_to_camel
+  entityLombokModel: true
+  restControllerStyle: true
+  superEntityColumns:
+    - created
+    - created_by
+    - updated
+    - updated_by
+  include:
+    - config_center
+
+template:
+  xml: null

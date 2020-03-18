@@ -250,7 +250,22 @@
           <artifactId>hhf-springboot-starter</artifactId>
           <version>0.0.1-SNAPSHOT</version>
       </dependency>-->
-
+      <!-- seata -->
+      <dependency>
+          <groupId>com.alibaba.cloud</groupId>
+          <artifactId>spring-cloud-starter-alibaba-seata</artifactId>
+          <exclusions>
+              <exclusion>
+                  <artifactId>seata-all</artifactId>
+                  <groupId>io.seata</groupId>
+              </exclusion>
+          </exclusions>
+      </dependency>
+      <dependency>
+          <groupId>io.seata</groupId>
+          <artifactId>seata-all</artifactId>
+          <version>0.9.0</version>
+      </dependency>
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->

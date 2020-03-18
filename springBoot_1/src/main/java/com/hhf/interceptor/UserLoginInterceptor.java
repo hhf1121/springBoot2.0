@@ -3,7 +3,10 @@ package com.hhf.interceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
@@ -12,7 +15,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
  * author:hhf
  * datetime:2020-1-31 19:33:56
  */
-@Component
+@Slf4j
 public class UserLoginInterceptor implements HandlerInterceptor {
 
     protected org.slf4j.Logger logger = LoggerFactory.getLogger(getClass());
@@ -22,15 +25,15 @@ public class UserLoginInterceptor implements HandlerInterceptor {
                              Object handler)throws Exception {
 
         HttpSession session = request.getSession(true);
-        Object username=session.getAttribute("");
+        Object username=session.getAttribute("currentUser");
 //        username="";
         if(null!=username) {//已登录
             logger.info("已登录");
             return true;
         }else {//未登录
             //直接重定向到登录页面
-//            response.sendRedirect(request.getContextPath());
             logger.info("未登录");
+            response.sendRedirect("local/");
             return false;
         }
     }
