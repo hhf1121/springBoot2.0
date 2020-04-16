@@ -266,6 +266,13 @@
           <artifactId>seata-all</artifactId>
           <version>0.9.0</version>
       </dependency>
+      <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
+      <dependency>
+          <groupId>com.google.guava</groupId>
+          <artifactId>guava</artifactId>
+          <version>25.1-jre</version>
+      </dependency>
+
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->

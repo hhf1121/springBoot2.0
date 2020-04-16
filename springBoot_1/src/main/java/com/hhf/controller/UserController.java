@@ -61,7 +61,7 @@ public class UserController {
     @RequestMapping("mq/producer")
     public Map<String, Object> callback(String message) {
         try {
-            return mqProducer.send("myTopic", "mytag", message);
+            return mqProducer.send("hhfTopic", "mytag", message);
         } catch (UnsupportedEncodingException e) {
             return ResultUtils.getFailResult(e.getMessage());
         } catch (InterruptedException e) {
@@ -94,7 +94,7 @@ public class UserController {
     //分页
     @RequestMapping("user/query")
     public Map<String, Object> query(String name, int pageNum, int pageSize) {
-        return null;//ResultUtils.getSuccessResult(userService.query(name,pageNum,pageSize));
+        return ResultUtils.getSuccessResult(userService.query(name,pageNum,pageSize));
     }
 
 

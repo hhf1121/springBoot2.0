@@ -5,21 +5,27 @@ package com.hhf.service;
  * SpringBoot2.0整合pagehelper
  */
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.nio.charset.Charset;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.common.collect.Lists;
+import com.google.common.hash.BloomFilter;
+import com.google.common.hash.Funnel;
+import com.google.common.hash.Funnels;
+import com.google.common.hash.PrimitiveSink;
 import com.hhf.utils.ResultUtils;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -39,13 +45,16 @@ import redis.clients.jedis.JedisCluster;
 
 @Slf4j
 @Service
-public class UserService extends ServiceImpl<UserMapper,User> {
+public class UserService extends ServiceImpl<UserMapper,User> implements InitializingBean {
 	
 	@Autowired
 	private UserMapper userMapper;
 
 	@Autowired
 	StringRedisTemplate stringRedisTemplate;
+
+	//声明一个布隆过滤器
+	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
 
 //	@Autowired
 //	RedisTemplate<String,String> redisTemplate;
@@ -66,7 +75,8 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 		int i=1/Integer.parseInt(passWord);
 		return insert;
 	}
-	
+
+	//使用PageInfo插件
 //	public PageInfo<User> query(String name,int pageNum,int pageSize) {
 //		log.info("----------queryUserByPage:service-----------");
 //		//使用pagehelper:生产page信息
@@ -75,6 +85,17 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 //		PageInfo<User> result=new PageInfo<User>(findByName);
 //		return result;
 //	}
+
+	public List<User> query(String name,int pageNum,int pageSize) {
+		//1.使用布隆过滤器
+		boolean b = integerBloomFilter.mightContain(name.hashCode());
+		if(!b){
+			return Lists.newArrayList();
+		}
+		//2.查询redis
+		List<User> findByName = JSONObject.parseArray(loadCacheRedis(name), User.class);
+		return findByName;
+	}
 
 	/**
 	 * 读取redis缓存，使用redis分布式锁
@@ -234,4 +255,27 @@ public class UserService extends ServiceImpl<UserMapper,User> {
 		return "未找到user";
 	}
 
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		//初始化布隆过滤器
+		Timer timer=new Timer();
+		TimerTask task=new TimerTask() {
+			@Override
+			public void run() {
+				initBloomFilter();
+			}
+		};
+		timer.scheduleAtFixedRate(task,5000,1000*60L);//延时5s、每1分钟刷新一次
+	}
+
+	//初始化布隆过滤器
+	private void initBloomFilter() {
+		QueryWrapper<User> userQueryWrapper=new QueryWrapper<>();
+		userQueryWrapper.select("name");
+		List<User> users = userMapper.selectList(userQueryWrapper);
+		List<String> names= Lists.newArrayList();
+		for (User user : users) {//放入过滤器中
+			integerBloomFilter.put(user.getName().hashCode());
+		}
+	}
 }
