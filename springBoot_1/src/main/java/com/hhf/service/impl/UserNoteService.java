@@ -81,4 +81,24 @@ public class UserNoteService implements IUserNoteService {
         }
         return ResultUtils.getFailResult("删除失败");
     }
+
+    @Override
+    public List<UserNote> queryNoteLitsWithPohot() {
+        QueryWrapper<UserNote> queryWrapper=new QueryWrapper<>();
+        queryWrapper.isNotNull("img_code");
+        List<UserNote> userNotes = userNoteMapper.selectList(queryWrapper);
+        return userNotes;
+    }
+
+    @Override
+    public List<UserNote> queryNotesTitle(String title) {
+        QueryWrapper queryWrapper=new QueryWrapper();
+        if(!StringUtils.isEmpty(title))queryWrapper.like("note_title",title);
+        queryWrapper.select("id","note_title");
+        List<UserNote> list = userNoteMapper.selectList(queryWrapper);
+        for (UserNote userNote : list) {
+            userNote.setIdStr(userNote.getId()+"");
+        }
+        return list;
+    }
 }

@@ -1,9 +1,6 @@
 package com.hhf.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -13,12 +10,14 @@ import java.util.List;
 @Data
 public class UserNote {
 
-    @TableId
+    @TableId(value ="id",type = IdType.AUTO)
     private Long id;
 
     private String noteTitle;
 
     private Integer noteType;
+
+    private String imgCode;
 
     private String noteAddress;
 
@@ -60,5 +59,6 @@ public class UserNote {
 
     @TableField(exist = false)
     private String idStr;
+
 
 }

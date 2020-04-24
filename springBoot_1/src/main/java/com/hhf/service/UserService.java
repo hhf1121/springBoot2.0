@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.common.util.UuidUtils;
 import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -42,6 +43,9 @@ import com.hhf.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisCluster;
+
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
 @Service
@@ -210,10 +214,17 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return userMapper.update(user,wrapper);
 	}
 
-	public User queryByVue(String userName, String passWord) {
+	public User queryByVue(String userName, String passWord, HttpServletResponse httpServletResponse) {
         QueryWrapper<User> wrapper=new QueryWrapper<>();
         wrapper.eq("userName",userName).eq("passWord",passWord);
-		return userMapper.selectOne(wrapper);
+		User user = userMapper.selectOne(wrapper);
+		String token = UuidUtils.generateUuid();
+		//保存到redis中，30分钟失效
+		stringRedisTemplate.opsForValue().set(token,user.getUserName(),30, TimeUnit.MINUTES);
+		Cookie cookie=new Cookie("myToken",token);
+		cookie.setPath("/");
+		httpServletResponse.addCookie(cookie);
+		return user;
 	}
 
 	public int deleteByVue(Long id) {

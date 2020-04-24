@@ -1,5 +1,6 @@
 package com.hhf.controller;
 
+import com.alibaba.nacos.common.util.UuidUtils;
 import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
@@ -15,15 +16,21 @@ import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 //import com.hhf.dubbo.DubboService;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
@@ -126,12 +133,11 @@ public class UserController {
         return ResultUtils.getSuccessResult(userService.updateDataByVue(user));
     }
 
+
     //VUE-对应接口
     @RequestMapping("vue/queryByVue")
-    public Map<String, Object> queryByVue(String userName, String passWord) {
-        User user = userService.queryByVue(userName, passWord);
-//        session.setAttribute("user",user);
-        return ResultUtils.getSuccessResult(user);
+    public Map<String, Object> queryByVue(String userName, String passWord, HttpServletResponse httpServletResponse) {
+        return ResultUtils.getSuccessResult(userService.queryByVue(userName, passWord,httpServletResponse));
     }
 
     @RequestMapping("vue/deleteByVue")

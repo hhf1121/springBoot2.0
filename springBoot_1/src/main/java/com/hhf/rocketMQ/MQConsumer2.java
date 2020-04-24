@@ -38,7 +38,7 @@ public class MQConsumer2 implements CommandLineRunner {
      */
     public void messageListener(){
 
-        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("SpringBootHHFconsumer2");
+        DefaultMQPushConsumer consumer=new DefaultMQPushConsumer(pushConsumer);
 
         consumer.setNamesrvAddr(namesrvAddr);
         try {
@@ -48,7 +48,7 @@ public class MQConsumer2 implements CommandLineRunner {
             //订阅某Topic下多种类型的消息，请在多个Tag之间用 || 分隔:consumer.subscribe("MQ_TOPIC", "TagA||TagB", new MessageListener() {……});
 
             // 订阅PushTopic下Tag为push的消息,都订阅消息
-            consumer.subscribe("myTopic", "mytag");
+            consumer.subscribe("hhfTopic", "*");
 
             // 程序第一次启动从消息队列头获取数据
             consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);

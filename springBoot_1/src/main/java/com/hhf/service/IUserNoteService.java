@@ -3,6 +3,7 @@ package com.hhf.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hhf.entity.UserNote;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IUserNoteService {
@@ -14,4 +15,8 @@ public interface IUserNoteService {
     Map<String,Object> updateNote(UserNote userNote);
 
     Map<String,Object> deleteNotes(UserNote userNote);
+
+    List<UserNote> queryNoteLitsWithPohot();
+
+    List<UserNote> queryNotesTitle(String title);
 }
