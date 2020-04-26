@@ -3,6 +3,7 @@ package com.hhf.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.hhf.entity.UserNote;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -19,4 +20,6 @@ public interface IUserNoteService {
     List<UserNote> queryNoteLitsWithPohot();
 
     List<UserNote> queryNotesTitle(String title);
+
+    Map<String, Object> getAll(Date from,Date now);
 }

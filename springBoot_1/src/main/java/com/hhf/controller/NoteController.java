@@ -11,6 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -66,6 +67,11 @@ public class NoteController {
         }catch (Exception e){
             return ResultUtils.getFailResult(e.getMessage());
         }
+    }
+
+    @GetMapping("/getAll")
+    public Map<String,Object> getAll(Date from,Date now){
+        return  userNoteService.getAll(from,now);
     }
 
 }

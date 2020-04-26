@@ -60,5 +60,8 @@ public class UserNote {
     @TableField(exist = false)
     private String idStr;
 
+    @TableField(exist = false)
+    private String timeStr;//返回vo的日期年月日
+
 
 }
