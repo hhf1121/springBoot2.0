@@ -1,6 +1,5 @@
 package com.hhf.controller;
 
-import com.alibaba.nacos.common.util.UuidUtils;
 import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
@@ -16,22 +15,17 @@ import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-
-//import com.hhf.dubbo.DubboService;
-
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
+//import com.hhf.dubbo.DubboService;
 
 /**
  * userController
@@ -196,5 +190,10 @@ public class UserController {
         return userService.getCurrentUserStr(Long.valueOf(id));
     }
 
+    //下线用户
+    @GetMapping("/downUser")
+    public void downUser(HttpServletRequest httpServletRequest,HttpServletResponse response) throws IOException {
+         userService.downUser(httpServletRequest,response);
+    }
 
 }

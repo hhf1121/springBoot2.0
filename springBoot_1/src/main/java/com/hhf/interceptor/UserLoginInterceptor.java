@@ -14,6 +14,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * description:
  * author:hhf
@@ -44,9 +46,13 @@ public class UserLoginInterceptor implements HandlerInterceptor {
         if(StringUtils.isBlank(s)){
             //直接重定向到登录页面
             logger.info("未登录");
+//            response.setStatus(401);
+            response.sendError(401);
             response.sendRedirect("http://localhost:8081/#/Login");
             return false;
         }
+        //redis续时间
+        stringRedisTemplate.opsForValue().set(token,s,30, TimeUnit.MINUTES);
         logger.info("已登录");
         return true;
     }

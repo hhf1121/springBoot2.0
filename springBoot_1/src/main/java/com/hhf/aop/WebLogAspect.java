@@ -70,7 +70,7 @@ public class WebLogAspect {
 	@AfterReturning(returning="ret",pointcut="webLog()")
 	public void doAfterReturning(Object ret) {
 		logger.info("RESPINSE:"+ret);
-		log.setRESPINSE(ret.toString());
+		log.setRESPINSE(ret+"");
 		log.setDate(new Date());
 //		mongoTemplate.insert(log);
 	}

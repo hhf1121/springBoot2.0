@@ -5,6 +5,7 @@ package com.hhf.service;
  * SpringBoot2.0整合pagehelper
  */
 
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -45,6 +46,7 @@ import org.springframework.util.StringUtils;
 import redis.clients.jedis.JedisCluster;
 
 import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 @Slf4j
@@ -287,6 +289,24 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		List<String> names= Lists.newArrayList();
 		for (User user : users) {//放入过滤器中
 			integerBloomFilter.put(user.getName().hashCode());
+		}
+	}
+
+    public void downUser(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
+		Cookie[] cookies = httpServletRequest.getCookies();
+		String token="";
+		for (Cookie cookie : cookies) {
+			if (cookie.getName().equals("myToken")) {
+				token=cookie.getValue();
+				stringRedisTemplate.delete(token);//删除redis
+				Cookie cookie1 = new Cookie(cookie.getName(), null);
+				cookie1.setMaxAge(0);//cookie失效
+				cookie1.setPath("/");
+				response.addCookie(cookie1);
+//				response.setStatus(401);
+				response.sendError(401);
+				response.sendRedirect("http://localhost:8081/#/Login");;
+			}
 		}
 	}
 }
