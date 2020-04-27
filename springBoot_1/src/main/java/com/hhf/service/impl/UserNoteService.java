@@ -178,4 +178,13 @@ public class UserNoteService implements IUserNoteService {
         return ResultUtils.getSuccessResult(list);
     }
 
+    @Override
+    public Map<String, Object> updateNoteAll(UserNote userNote) {
+        int i = userNoteMapper.updateById(userNote);
+        if(i>0){
+            return ResultUtils.getSuccessResult("更新成功");
+        }
+        return ResultUtils.getFailResult("更新失败");
+    }
+
 }

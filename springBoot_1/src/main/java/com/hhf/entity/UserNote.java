@@ -10,7 +10,7 @@ import java.util.List;
 @Data
 public class UserNote {
 
-    @TableId(value ="id",type = IdType.AUTO)
+    @TableId(value ="id",type = IdType.AUTO)//自增id
     private Long id;
 
     private String noteTitle;

@@ -4,6 +4,7 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.Arrays;
 import java.util.Random;
 
 /**
@@ -56,7 +57,8 @@ public class VerifyCodeImgUtil {
         try {
             ScriptEngineManager manager = new ScriptEngineManager();
             ScriptEngine engine = manager.getEngineByName("JavaScript");
-            return (Integer)engine.eval(exp);
+            Object eval = engine.eval(exp);
+            return eval instanceof Double?((Double) eval).intValue():(Integer)eval;
         }catch(Exception e) {
             e.printStackTrace();
             return null;
@@ -105,8 +107,9 @@ public class VerifyCodeImgUtil {
 
 
     public static void main(String[] args) {
+        String eval="3.0";
+        String x=eval+"";
+        eval=x.substring(0,x.indexOf("."));
 
-        VerifyCodeInfo verifyCode = createVerifyCode();
-        System.out.println(verifyCode);
     }
 }

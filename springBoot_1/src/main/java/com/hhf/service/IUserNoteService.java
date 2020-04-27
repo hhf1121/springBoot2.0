@@ -22,4 +22,6 @@ public interface IUserNoteService {
     List<UserNote> queryNotesTitle(String title);
 
     Map<String, Object> getAll(Date from,Date now);
+
+    Map<String, Object> updateNoteAll(UserNote userNote);
 }

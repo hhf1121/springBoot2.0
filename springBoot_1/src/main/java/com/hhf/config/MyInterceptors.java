@@ -21,7 +21,7 @@ public class MyInterceptors  implements WebMvcConfigurer {
 				.excludePathPatterns("/css/**","/js/**","/images/**")//排除样式、脚本、图片等资源文件
 				.excludePathPatterns("/springBoot/vue/queryByVue")//排除登录页面
 				.excludePathPatterns("/springBoot/verifyCode");//排除验证码
-//				.excludePathPatterns("/wechatplatformuser/loginRBAC");//排除用户点击登录按钮
+//				.excludePathPatterns("/wechatplatformuser/loginnote/updateNoteRBAC");//排除用户点击登录按钮
     }
 
 }

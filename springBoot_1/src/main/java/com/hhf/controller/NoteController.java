@@ -51,10 +51,21 @@ public class NoteController {
         }
     }
 
+    //快捷更新
     @PostMapping("updateNote")
     public Map<String,Object> updateNote(@RequestBody UserNote userNote){
         try {
             return userNoteService.updateNote(userNote);
+        }catch (Exception e){
+            return ResultUtils.getFailResult(e.getMessage());
+        }
+    }
+
+    //全量更新（可更新图片）
+    @PostMapping("updateNoteAll")
+    public Map<String,Object> updateNoteAll(@RequestBody UserNote userNote){
+        try {
+            return userNoteService.updateNoteAll(userNote);
         }catch (Exception e){
             return ResultUtils.getFailResult(e.getMessage());
         }
