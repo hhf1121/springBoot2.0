@@ -5,34 +5,29 @@ package com.hhf.service;
  * SpringBoot2.0整合pagehelper
  */
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.util.UuidUtils;
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import com.google.common.hash.BloomFilter;
-import com.google.common.hash.Funnel;
 import com.google.common.hash.Funnels;
-import com.google.common.hash.PrimitiveSink;
 import com.hhf.utils.ResultUtils;
+import com.hhf.utils.VerifyCodeImgUtil;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,8 +38,9 @@ import com.hhf.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
-import redis.clients.jedis.JedisCluster;
+import sun.misc.BASE64Encoder;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -216,10 +212,19 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return userMapper.update(user,wrapper);
 	}
 
-	public User queryByVue(String userName, String passWord, HttpServletResponse httpServletResponse) {
-        QueryWrapper<User> wrapper=new QueryWrapper<>();
+	public User queryByVue(String userName, String passWord,String verifyCode,  HttpServletResponse httpServletResponse) {
+		//校验验证码：
+		String s = stringRedisTemplate.opsForValue().get(userName);
+		if(!verifyCode.equals(s)){
+			throw new RuntimeException("验证码不正确或已过期");
+		}
+		stringRedisTemplate.delete(userName);
+		QueryWrapper<User> wrapper=new QueryWrapper<>();
         wrapper.eq("userName",userName).eq("passWord",passWord);
 		User user = userMapper.selectOne(wrapper);
+		if(user==null){
+			return null;
+		}
 		String token = UuidUtils.generateUuid();
 		//保存到redis中，30分钟失效
 		stringRedisTemplate.opsForValue().set(token,user.getUserName(),30, TimeUnit.MINUTES);
@@ -307,6 +312,37 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				response.sendError(401);
 				response.sendRedirect("http://localhost:8081/#/Login");;
 			}
+		}
+	}
+
+	public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {
+		try {
+			VerifyCodeImgUtil.VerifyCodeInfo imageInfo = VerifyCodeImgUtil.createVerifyCode();
+			Integer result = imageInfo.getResult();
+			log.info("验证码答案:{}",result);
+			log.info("入参："+userName);
+			// 验证码答案写入到redis
+			stringRedisTemplate.opsForValue().set(userName,result+"",5,TimeUnit.MINUTES);
+			//返回图片对象
+//			response.setHeader("Content-Type", "image/jpeg");
+//			OutputStream out = response.getOutputStream();
+//			ImageIO.write(imageInfo.getBufferedImage(), "JPEG", out);
+//			out.flush();
+//			out.close();
+//			return null;
+			/**
+			 * 返回图片的base64编码,在前端用js解码成图片
+			 */
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();//io流
+            ImageIO.write(imageInfo.getBufferedImage(), "png", baos);//写入流中
+            byte[] bytes = baos.toByteArray();//转换成字节
+            BASE64Encoder encoder = new BASE64Encoder();
+            String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+            png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+            return ResultUtils.getSuccessResult(png_base64);
+		}catch(Exception e) {
+			e.printStackTrace();
+			return ResultUtils.getFailResult("获取验证码失败");
 		}
 	}
 }

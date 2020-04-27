@@ -10,6 +10,7 @@ import com.hhf.service.JDBCService;
 import com.hhf.service.ProductService;
 import com.hhf.service.UserService;
 import com.hhf.utils.ResultUtils;
+import com.hhf.utils.VerifyCodeImgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -18,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -130,8 +133,14 @@ public class UserController {
 
     //VUE-对应接口
     @RequestMapping("vue/queryByVue")
-    public Map<String, Object> queryByVue(String userName, String passWord, HttpServletResponse httpServletResponse) {
-        return ResultUtils.getSuccessResult(userService.queryByVue(userName, passWord,httpServletResponse));
+    public Map<String, Object> queryByVue(String userName, String passWord,String verifyCode, HttpServletResponse httpServletResponse) {
+        User user= null;
+        try{
+            user = userService.queryByVue(userName, passWord, verifyCode, httpServletResponse);
+        }catch (RuntimeException e){
+            return ResultUtils.getFailResult(e.getMessage());
+        }
+        return ResultUtils.getSuccessResult(user);
     }
 
     @RequestMapping("vue/deleteByVue")
@@ -194,6 +203,12 @@ public class UserController {
     @GetMapping("/downUser")
     public void downUser(HttpServletRequest httpServletRequest,HttpServletResponse response) throws IOException {
          userService.downUser(httpServletRequest,response);
+    }
+
+    @RequestMapping(value="/verifyCode", method=RequestMethod.GET)
+    @ResponseBody
+    public Map<String,Object> getVerifyCode(HttpServletRequest request,HttpServletResponse response,String userName){
+        return userService.getVerifyCode(request,response,userName);
     }
 
 }

@@ -34,7 +34,6 @@ public class UserLoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler)throws Exception {
-
         Cookie[] cookies = request.getCookies();
         String token = "";
         for (Cookie cookie : cookies) {
