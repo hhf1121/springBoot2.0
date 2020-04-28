@@ -6,12 +6,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.hhf.entity.BaseDistrict;
 import com.hhf.entity.UserNote;
+import com.hhf.mapper.BaseDistrictMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.service.IUserNoteService;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.TendencyNoteMap;
 import lombok.extern.slf4j.Slf4j;
+import org.checkerframework.checker.units.qual.A;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -24,11 +28,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service("userNoteService")
-public class UserNoteService implements IUserNoteService {
+public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Autowired
     private UserNoteMapper userNoteMapper;
 
+    @Autowired
+    private BaseDistrictMapper baseDistrictMapper;
+
+    private Map<String,String> districtMapCache=Maps.newHashMap();//缓存
 
     @Override
     public IPage<UserNote> queryNoteLits(UserNote userNote) {
@@ -59,6 +67,7 @@ public class UserNoteService implements IUserNoteService {
 
     @Override
     public Map<String, Object> createNote(UserNote userNote) {
+        userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i=userNoteMapper.insert(userNote);
         if(i>0){
             return ResultUtils.getSuccessResult("保存成功");
@@ -180,6 +189,7 @@ public class UserNoteService implements IUserNoteService {
 
     @Override
     public Map<String, Object> updateNoteAll(UserNote userNote) {
+        userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i = userNoteMapper.updateById(userNote);
         if(i>0){
             return ResultUtils.getSuccessResult("更新成功");
@@ -187,4 +197,22 @@ public class UserNoteService implements IUserNoteService {
         return ResultUtils.getFailResult("更新失败");
     }
 
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Timer timer=new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                QueryWrapper<BaseDistrict> queryWrapper=new QueryWrapper<>();
+                queryWrapper.select("code","merger_name");
+                queryWrapper.eq("level_type",3);//区县
+                List<BaseDistrict> baseDistricts = baseDistrictMapper.selectList(queryWrapper);
+                Map<String,String> districtMap=Maps.newHashMap();
+                for (BaseDistrict baseDistrict : baseDistricts) {
+                    districtMap.put(baseDistrict.getCode()+"",baseDistrict.getMergerName());
+                }
+                districtMapCache=districtMap;
+            }
+        },5000,12*3600*1000);//延迟5秒、每12小时更新一次。
+    }
 }

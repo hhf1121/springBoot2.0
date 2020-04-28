@@ -21,6 +21,8 @@ public class UserNote {
 
     private String noteAddress;
 
+    private String noteAddressName;
+
     private String noteName;
 
     private String noteRemark;
