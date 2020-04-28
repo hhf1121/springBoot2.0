@@ -144,7 +144,7 @@ public class BaseService implements IBaseService {
         //存入redis一小时
         Object jsonObj=JSON.toJSONString(vos, SerializerFeature.WriteMapNullValue);
 //        Object jsonObj = JSONArray.toJSON(vos);
-        System.out.println(jsonObj.toString());
+        log.info(jsonObj.toString());
         stringRedisTemplate.opsForValue().set(level,jsonObj.toString(),60,TimeUnit.MINUTES);
         return ResultUtils.getSuccessResult(vos);
     }
