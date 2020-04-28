@@ -313,7 +313,8 @@
                     <dependency>
                         <groupId>mysql</groupId>
                         <artifactId>mysql-connector-java</artifactId>
-                        <!--&lt;!&ndash;<version>8.0.18</version>&ndash;&gt;-->
+                        <!--mybatis-generator生成实体类的时候，不加版本号，生成失败-->
+                        <!--<version>5.1.45</version>-->
                     </dependency>
                 </dependencies>
             </plugin>
