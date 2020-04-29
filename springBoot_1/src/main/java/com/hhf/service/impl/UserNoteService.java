@@ -17,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -36,7 +37,12 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
     @Autowired
     private BaseDistrictMapper baseDistrictMapper;
 
+//    @Autowired
+//    private StringRedisTemplate stringRedisTemplate;
+
     private Map<String,String> districtMapCache=Maps.newHashMap();//缓存
+
+    private List<UserNote> photoCache=Lists.newArrayList();
 
     @Override
     public IPage<UserNote> queryNoteLits(UserNote userNote) {
@@ -101,9 +107,14 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Override
     public List<UserNote> queryNoteLitsWithPohot() {
+        if(!photoCache.isEmpty()){
+            log.info("图片、走本地缓存...");
+            return photoCache;
+        }
         QueryWrapper<UserNote> queryWrapper=new QueryWrapper<>();
         queryWrapper.isNotNull("img_code");
         List<UserNote> userNotes = userNoteMapper.selectList(queryWrapper);
+        photoCache.addAll(userNotes);
         return userNotes;
     }
 

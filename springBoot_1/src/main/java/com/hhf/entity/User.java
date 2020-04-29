@@ -38,6 +38,9 @@ public class User {
 
     private String address;
 
+    @TableField("photoData")
+    private byte [] photoData;
+
     private Integer yes;
 
     @TableField("createDate")

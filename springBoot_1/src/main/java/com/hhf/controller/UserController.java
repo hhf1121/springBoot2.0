@@ -18,6 +18,7 @@ import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +26,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -209,6 +211,28 @@ public class UserController {
     @ResponseBody
     public Map<String,Object> getVerifyCode(HttpServletRequest request,HttpServletResponse response,String userName){
         return userService.getVerifyCode(request,response,userName);
+    }
+
+
+    @RequestMapping(value = "/loadingPhoto",method = RequestMethod.POST)
+    public Map<String,Object> loadingPhoto(@RequestParam("file") MultipartFile[] files,
+                                           @RequestParam(value = "passWord",required = false) String passWord,
+                                           @RequestParam(value="address",required = false) String address,
+                                           @RequestParam(value="id",required = false) String id) {
+        try {
+            return userService.loadingPhotoAndUpdate(files,passWord,address,id);
+        } catch (Exception e) {
+            return ResultUtils.getFailResult("更新异常");
+        }
+    }
+
+    @RequestMapping(value = "/updateNoImg",method = RequestMethod.POST)
+    public Map<String,Object> updateNoImg(@RequestBody User user) {
+        try {
+            return userService.updateNoImg(user);
+        } catch (Exception e) {
+            return ResultUtils.getFailResult("更新异常");
+        }
     }
 
 }

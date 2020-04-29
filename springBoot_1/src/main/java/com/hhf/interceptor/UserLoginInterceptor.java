@@ -39,6 +39,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
         for (Cookie cookie : cookies) {
             if (StringUtils.equals(cookie.getName(),"myToken")) {
                 token = cookie.getValue();
+                break;
             }
         }
         String s = stringRedisTemplate.opsForValue().get(token);

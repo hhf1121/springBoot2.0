@@ -7,7 +7,6 @@ package com.hhf.service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -38,6 +37,7 @@ import com.hhf.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StringUtils;
+import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
 import javax.imageio.ImageIO;
@@ -225,6 +225,13 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		if(user==null){
 			return null;
 		}
+		byte[] bytes = user.getPhotoData();//转换成字节
+		if(bytes!=null&&bytes.length>0){
+			BASE64Encoder encoder = new BASE64Encoder();
+			String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+			user.setPicPath(png_base64);
+		}
 		String token = UuidUtils.generateUuid();
 		//保存到redis中，30分钟失效
 		stringRedisTemplate.opsForValue().set(token,user.getUserName(),30, TimeUnit.MINUTES);
@@ -260,6 +267,13 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
     public User getCurrentUser(Long id) {
 		User user = userMapper.selectById(id);
 		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
+			byte[] bytes = user.getPhotoData();//转换成字节
+			if(bytes!=null&&bytes.length>0){
+				BASE64Encoder encoder = new BASE64Encoder();
+				String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+				png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+				user.setPicPath(png_base64);
+			}
 			return user;
 		}
 		return new User();
@@ -309,8 +323,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				cookie1.setPath("/");
 				response.addCookie(cookie1);
 //				response.setStatus(401);
-				response.sendError(401);
-				response.sendRedirect("http://localhost:8081/#/Login");;
+//				response.sendError(401);
+//				response.sendRedirect("http://localhost:8081/#/Login");;
 			}
 		}
 	}
@@ -343,6 +357,41 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}catch(Exception e) {
 			e.printStackTrace();
 			return ResultUtils.getFailResult("获取验证码失败");
+		}
+	}
+
+	public Map<String, Object> loadingPhotoAndUpdate(MultipartFile[] file, String passWord, String address, String id) throws IOException {
+		User user=new User();
+		if(file!=null&&file.length>0){
+			byte[] bytes = file[0].getBytes();
+			user.setPhotoData(bytes);
+			if(StringUtils.isEmpty(passWord)||StringUtils.isEmpty(address)||StringUtils.isEmpty(id)){
+				if(bytes.length>0){
+					return ResultUtils.getSuccessResult("图片上传成功");
+				}
+			}
+		}
+
+		user.setPassWord(passWord);
+		user.setAddress(address);
+		QueryWrapper<User> userQueryWrappe=new QueryWrapper<>();
+		userQueryWrappe.eq("id",id);
+		int update = userMapper.update(user, userQueryWrappe);
+		if(update>0){
+			return ResultUtils.getSuccessResult("更新成功");
+		}else {
+			return ResultUtils.getFailResult("更新失败");
+		}
+	}
+
+	public Map<String, Object> updateNoImg(User user) {
+		QueryWrapper<User> userQueryWrappe=new QueryWrapper<>();
+		userQueryWrappe.eq("id",user.getId());
+		int update = userMapper.update(user, userQueryWrappe);
+		if(update>0){
+			return ResultUtils.getSuccessResult("更新成功");
+		}else {
+			return ResultUtils.getFailResult("更新失败");
 		}
 	}
 }
