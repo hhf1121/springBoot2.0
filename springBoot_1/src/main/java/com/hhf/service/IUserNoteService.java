@@ -24,4 +24,6 @@ public interface IUserNoteService {
     Map<String, Object> getAll(Date from,Date now);
 
     Map<String, Object> updateNoteAll(UserNote userNote);
+
+    Map<String, Object> checkTitle(UserNote userNote);
 }

@@ -61,6 +61,15 @@ public class NoteController {
         }
     }
 
+    @GetMapping("checkTitle")
+    public Map<String,Object> checkTitle(UserNote userNote){
+        try {
+            return userNoteService.checkTitle(userNote);
+        }catch (Exception e){
+            return ResultUtils.getFailResult(e.getMessage());
+        }
+    }
+
     //全量更新（可更新图片）
     @PostMapping("updateNoteAll")
     public Map<String,Object> updateNoteAll(@RequestBody UserNote userNote){

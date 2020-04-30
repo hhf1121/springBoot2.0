@@ -149,13 +149,5 @@ public class BaseService implements IBaseService {
         return ResultUtils.getSuccessResult(vos);
     }
 
-    public static void main(String[] args) {
-//        String sp=",\"children\":["+"/]";
-//        String x=sp.replaceAll("","/^(,\"children\":[])$/");
-//        System.out.println();
-        String re="{\"value\":\"340400\",\"label\":\"淮南市\",\"children\":[]}".replaceAll("","/^(,\"children\":[])$/");
-        System.out.println(re);
-
-    }
 
 }

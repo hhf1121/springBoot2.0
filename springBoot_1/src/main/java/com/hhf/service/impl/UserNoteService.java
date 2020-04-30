@@ -73,6 +73,11 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Override
     public Map<String, Object> createNote(UserNote userNote) {
+        //校验标题唯一
+        Map<String, Object> checkTitle = checkTitle(userNote);
+        if(!(Boolean) checkTitle.get("success")){
+            return ResultUtils.getFailResult(checkTitle.get("error").toString());
+        }
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i=userNoteMapper.insert(userNote);
         if(i>0){
@@ -200,12 +205,34 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Override
     public Map<String, Object> updateNoteAll(UserNote userNote) {
+        //校验标题唯一
+        Map<String, Object> checkTitle = checkTitle(userNote);
+        if(!(Boolean) checkTitle.get("success")){
+            return ResultUtils.getFailResult(checkTitle.get("error").toString());
+        }
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i = userNoteMapper.updateById(userNote);
         if(i>0){
             return ResultUtils.getSuccessResult("更新成功");
         }
         return ResultUtils.getFailResult("更新失败");
+    }
+
+    @Override
+    public Map<String, Object> checkTitle(UserNote userNote) {
+        //校验标题唯一性
+        Map<String,Object> map=Maps.newHashMap();
+        QueryWrapper<UserNote> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("note_title",userNote.getNoteTitle());
+        if(userNote.getId()!=null){
+            queryWrapper.ne("id",userNote.getId());
+        }
+        List<UserNote> userNotes = userNoteMapper.selectList(queryWrapper);
+        if(!userNotes.isEmpty()){
+            return ResultUtils.getFailResult("系统已存在相同的标题");
+        }else{
+            return ResultUtils.getSuccessResult("校验通过");
+        }
     }
 
     @Override
