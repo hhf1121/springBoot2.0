@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.nacos.common.util.UuidUtils;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -234,7 +235,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}
 		String token = UuidUtils.generateUuid();
 		//保存到redis中，30分钟失效
-		stringRedisTemplate.opsForValue().set(token,user.getUserName(),30, TimeUnit.MINUTES);
+		Object jsonObj=JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
+		stringRedisTemplate.opsForValue().set(token,jsonObj.toString(),30, TimeUnit.MINUTES);
 		Cookie cookie=new Cookie("myToken",token);
 		cookie.setPath("/");
 		httpServletResponse.addCookie(cookie);

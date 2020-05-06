@@ -5,6 +5,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.alibaba.fastjson.JSONArray;
+import com.hhf.entity.User;
+import com.hhf.utils.CurrentUserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,9 @@ public class UserLoginInterceptor implements HandlerInterceptor {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    CurrentUserContext currentUserContext;
+
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
@@ -51,6 +57,9 @@ public class UserLoginInterceptor implements HandlerInterceptor {
             response.sendRedirect("http://localhost:8081/#/Login");
             return false;
         }
+//        redis、转换成user对象
+        User user = JSONArray.parseObject(s, User.class);
+        currentUserContext.setUser(user);
         //redis续时间
         stringRedisTemplate.opsForValue().set(token,s,30, TimeUnit.MINUTES);
         logger.info("已登录");
