@@ -207,6 +207,14 @@ public class UserController {
          userService.downUser(httpServletRequest,response);
     }
 
+    /**
+     *
+     * @param request
+     * @param response
+     * @param userName
+     * @return
+     * 获取验证码
+     */
     @RequestMapping(value="/verifyCode", method=RequestMethod.GET)
     @ResponseBody
     public Map<String,Object> getVerifyCode(HttpServletRequest request,HttpServletResponse response,String userName){
@@ -214,6 +222,15 @@ public class UserController {
     }
 
 
+    /**
+     *
+     * @param files
+     * @param passWord
+     * @param address
+     * @param id
+     * @return
+     * 修改用户信息（包含头像）
+     */
     @RequestMapping(value = "/loadingPhoto",method = RequestMethod.POST)
     public Map<String,Object> loadingPhoto(@RequestParam("file") MultipartFile[] files,
                                            @RequestParam(value = "passWord",required = false) String passWord,
@@ -226,6 +243,11 @@ public class UserController {
         }
     }
 
+    /**
+     * 更新用户（忽略头像）
+     * @param user
+     * @return
+     */
     @RequestMapping(value = "/updateNoImg",method = RequestMethod.POST)
     public Map<String,Object> updateNoImg(@RequestBody User user) {
         try {

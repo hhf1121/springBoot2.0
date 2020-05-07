@@ -373,7 +373,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				}
 			}
 		}
-
 		user.setPassWord(passWord);
 		user.setAddress(address);
 		QueryWrapper<User> userQueryWrappe=new QueryWrapper<>();

@@ -15,20 +15,20 @@ import java.util.Date;
 @Component
 public class MetaObjectHandlerConfig implements MetaObjectHandler {
 
-    @Autowired
-    CurrentUserContext currentUserContext;
+//    @Autowired
+//    CurrentUserContext currentUserContext;
 
     @Override
     public void insertFill(MetaObject metaObject) {
         Date now = new Date();
         setFieldValByName("createrTime", now, metaObject);
-        setFieldValByName("creater", currentUserContext.getCurrentUser().getName(), metaObject);
+        setFieldValByName("creater", CurrentUserContext.getCurrentUser().getName(), metaObject);
     }
 
     @Override
     public void updateFill(MetaObject metaObject) {
         Date now = new Date();
         this.setFieldValByName("modifierTime", now, metaObject);
-        this.setFieldValByName("modifier", currentUserContext.getCurrentUser().getName(), metaObject);
+        this.setFieldValByName("modifier", CurrentUserContext.getCurrentUser().getName(), metaObject);
     }
 }
