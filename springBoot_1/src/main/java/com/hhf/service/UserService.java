@@ -22,6 +22,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.hhf.utils.ResultUtils;
@@ -230,12 +231,16 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		if(user==null){
 			return null;
 		}
-		byte[] bytes = user.getPhotoData();//转换成字节
-		if(bytes!=null&&bytes.length>0){
-			BASE64Encoder encoder = new BASE64Encoder();
-			String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
-			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
-			user.setPicPath(png_base64);
+//		byte[] bytes = user.getPhotoData();//转换成字节
+////		if(bytes!=null&&bytes.length>0){
+////			BASE64Encoder encoder = new BASE64Encoder();
+////			String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+////			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+////			user.setPicPath(png_base64);
+////		}
+		String picPath = user.getPicPath();
+		if(!StringUtils.isEmpty(picPath)){
+			user.setPicPath("http://"+getHostAddress()+":"+port+"/"+user.getPicPath());
 		}
 		String token = UuidUtils.generateUuid();
 		//保存到redis中，30分钟失效
@@ -263,15 +268,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		IPage<User> page=new Page(user.getPageIndex(),user.getPageSize());
 		IPage<User> iPage = userMapper.selectPage(page, wrapper);
 		List<User> records = iPage.getRecords();
-		String hostAddress = null;
-		try {
-			hostAddress = InetAddress.getLocalHost().getHostAddress();
-		} catch (UnknownHostException e) {
-			log.error(e.getMessage());
-			hostAddress="localhost";
-		}
 		for (User record : records) {
-			String x=!StringUtils.isEmpty(record.getPicPath())? "http://"+hostAddress+":"+port+"/"+record.getPicPath():"";
+			String x=!StringUtils.isEmpty(record.getPicPath())? "http://"+getHostAddress()+":"+port+"/"+record.getPicPath():"";
 			record.setPicPath(x);
 			if(!StringUtils.isEmpty(record.getPicPath()))log.info(record.getPicPath());
 		}
@@ -287,16 +285,29 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return ResultUtils.getSuccessResult(iPage);
 	}
 
+	private String getHostAddress(){
+		String hostAddress = null;
+		try {
+			hostAddress = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			log.error(e.getMessage());
+			hostAddress="localhost";
+		}
+		return hostAddress;
+	}
+
     public User getCurrentUser(Long id) {
 		User user = userMapper.selectById(id);
+		String x=!StringUtils.isEmpty(user.getPicPath())? "http://"+getHostAddress()+":"+port+"/"+user.getPicPath():"";
+		user.setPicPath(x);
 		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
-			byte[] bytes = user.getPhotoData();//转换成字节
-			if(bytes!=null&&bytes.length>0){
-				BASE64Encoder encoder = new BASE64Encoder();
-				String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
-				png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
-				user.setPicPath(png_base64);
-			}
+//			byte[] bytes = user.getPhotoData();//转换成字节
+//			if(bytes!=null&&bytes.length>0){
+//				BASE64Encoder encoder = new BASE64Encoder();
+//				String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+//				png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+//				user.setPicPath(png_base64);
+//			}
 			return user;
 		}
 		return new User();
@@ -321,6 +332,49 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 			}
 		};
 		timer.scheduleAtFixedRate(task,5000,1000*60L);//延时5s、每1分钟刷新一次
+
+		//定时清除已删除的文件
+		Timer timer2=new Timer();
+		TimerTask task2=new TimerTask() {
+			@Override
+			public void run() {
+				clearFile();
+			}
+		};
+		timer2.scheduleAtFixedRate(task2,60000,1000*60L);//延时1分钟、每1小时刷新一次
+
+	}
+
+	private void clearFile() {
+		//1.查询所有的picPath
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		queryWrapper.isNotNull("picPath");
+		queryWrapper.select("picPath");
+		List<User> users = userMapper.selectList(queryWrapper);
+		Set<String> img = Sets.newHashSet();
+		for (User user : users) {
+			String picPath = user.getPicPath();
+			img.add(picPath.substring(picPath.lastIndexOf("\\")+1));
+		}
+		log.info("库里的文件："+img.toString());
+		//2.遍历文件目录、删除不存在的文件
+		File file = new File("D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/img/");
+		if (file.exists()) {
+			File[] files = file.listFiles();
+			if (null == files || files.length == 0) {
+				log.info("文件夹是空的");
+				return;
+			} else {
+				for (File file2 : files) {
+					if (file2.isFile()) {
+						if(!img.contains(file2.getName())){
+							boolean delete = file2.delete();
+							if(delete) log.info(file2.getName()+"被删除...");
+						}
+					}
+				}
+			}
+		}
 	}
 
 	//初始化布隆过滤器
