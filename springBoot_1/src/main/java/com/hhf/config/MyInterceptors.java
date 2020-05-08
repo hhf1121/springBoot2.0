@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -22,6 +23,12 @@ public class MyInterceptors  implements WebMvcConfigurer {
 				.excludePathPatterns("/springBoot/vue/queryByVue")//排除登录页面
 				.excludePathPatterns("/springBoot/verifyCode");//排除验证码
 //				.excludePathPatterns("/wechatplatformuser/loginnote/updateNoteRBAC");//排除用户点击登录按钮
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        //外部访问路径映射到本地磁盘路径
+        registry.addResourceHandler("/resources/static/img/**").addResourceLocations("file:D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/img/");
     }
 
 }

@@ -6,7 +6,10 @@ package com.hhf.service;
  */
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -27,6 +30,7 @@ import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -247,6 +251,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return userMapper.deleteById(id);
 	}
 
+
+
+	@Value("${server.port}")
+	private String port;
 	public Map<String,Object>  queryPage(User user) {
 		//1.MP插件
 		QueryWrapper<User> wrapper=new QueryWrapper<>();
@@ -254,6 +262,19 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		if(user.getCreateDate()!=null) wrapper.eq("createDate",user.getCreateDate());
 		IPage<User> page=new Page(user.getPageIndex(),user.getPageSize());
 		IPage<User> iPage = userMapper.selectPage(page, wrapper);
+		List<User> records = iPage.getRecords();
+		String hostAddress = null;
+		try {
+			hostAddress = InetAddress.getLocalHost().getHostAddress();
+		} catch (UnknownHostException e) {
+			log.error(e.getMessage());
+			hostAddress="localhost";
+		}
+		for (User record : records) {
+			String x=!StringUtils.isEmpty(record.getPicPath())? "http://"+hostAddress+":"+port+"/"+record.getPicPath():"";
+			record.setPicPath(x);
+			if(!StringUtils.isEmpty(record.getPicPath()))log.info(record.getPicPath());
+		}
 		//2.手写分页
 //        user.setPageIndex((user.getPageIndex()-1)*user.getPageSize());
 //        List<User> list=userMapper.selectPage(user);
@@ -394,5 +415,27 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}else {
 			return ResultUtils.getFailResult("更新失败");
 		}
+	}
+
+	public String saveUserImg(MultipartFile file) throws IOException {
+		// 构建上传文件的存放 “文件夹” 路径
+		String fileDirPath = new String("springBoot_1/src/main/resources/static/img");
+		File fileDir = new File(fileDirPath);
+		if(!fileDir.exists()){
+			// 递归生成文件夹
+			fileDir.mkdirs();
+		}
+		// 拿到文件名
+		String filename = file.getOriginalFilename();
+		int i = new Random().nextInt(100);
+		String name=(System.currentTimeMillis()+i)+"-"+filename;
+		// 输出文件夹绝对路径 – 这里的绝对路径是相当于当前项目的路径而不是“容器”路径
+		System.out.println(fileDir.getAbsolutePath());
+		// 构建真实的文件路径D:\gitLocal\springBoot2.0\springBoot_1\src\main\resources\static\img
+		File newFile = new File(fileDir.getAbsolutePath() + File.separator + name);
+		System.out.println(newFile.getAbsolutePath());
+		// 上传图片到 -》 “绝对路径”
+		file.transferTo(newFile);
+		return "/resources/static/img"+File.separator+newFile.getName();
 	}
 }

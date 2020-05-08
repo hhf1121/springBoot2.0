@@ -120,11 +120,25 @@ public class UserController {
         return ResultUtils.getSuccessResult(userService.queryPage(user));
     }
 
-    //VUE-对应接口
+    //头像上传接口
+    @RequestMapping(value = "vue/loadingUserImg", method = RequestMethod.POST)
+    public Map<String, Object> loadingUserImg(@RequestParam("file") MultipartFile file) {
+        String result="";
+        try{
+            result = userService.saveUserImg(file);
+        }catch (Exception e ){
+            return ResultUtils.getFailResult("上传文件异常！");
+        }
+        return ResultUtils.getSuccessResult(result);
+    }
+
+
+    //VUE-对应接口(新增用户)
     @RequestMapping(value = "vue/insertDataByVue", method = RequestMethod.POST)
     public Map<String, Object> insertDataByVue(@RequestBody User user) {
         return ResultUtils.getSuccessResult(userService.insertDataByVue(user));
     }
+
 
     //VUE-对应接口
     @RequestMapping(value = "vue/updateDataByVue", method = RequestMethod.POST)
