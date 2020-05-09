@@ -59,4 +59,8 @@ public class User {
     @TableField("isDelete")
     private Integer isDelete;
 
+    @TableField(exist = false)
+    private String cachePhoto;
+
+
 }

@@ -25,6 +25,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import com.hhf.entity.UserNote;
+import com.hhf.mapper.UserNoteMapper;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import org.redisson.Redisson;
@@ -61,6 +63,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	StringRedisTemplate stringRedisTemplate;
 
+	@Autowired
+	private UserNoteMapper userNoteMapper;
+
 	//声明一个布隆过滤器
 	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
 
@@ -72,6 +77,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	@Autowired(required = false)
 	private Redisson redisson;
+
+    @Value("${server.port}")
+    private String port;
 	
 	@Transactional
 	public int insertUser(String userName,String passWord) {
@@ -238,10 +246,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 ////			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
 ////			user.setPicPath(png_base64);
 ////		}
-		String picPath = user.getPicPath();
-		if(!StringUtils.isEmpty(picPath)){
-			user.setPicPath("http://"+getHostAddress()+":"+port+"/"+user.getPicPath());
-		}
 		String token = UuidUtils.generateUuid();
 		//保存到redis中，30分钟失效
 		Object jsonObj=JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
@@ -257,9 +261,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	}
 
 
-
-	@Value("${server.port}")
-	private String port;
 	public Map<String,Object>  queryPage(User user) {
 		//1.MP插件
 		QueryWrapper<User> wrapper=new QueryWrapper<>();
@@ -269,8 +270,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		IPage<User> iPage = userMapper.selectPage(page, wrapper);
 		List<User> records = iPage.getRecords();
 		for (User record : records) {
-			String x=!StringUtils.isEmpty(record.getPicPath())? "http://"+getHostAddress()+":"+port+"/"+record.getPicPath():"";
-			record.setPicPath(x);
+//			String x=!StringUtils.isEmpty(record.getPicPath())? "http://"+getHostAddress()+":"+port+"/"+record.getPicPath():"";
+//			record.setPicPath(x);
 			if(!StringUtils.isEmpty(record.getPicPath()))log.info(record.getPicPath());
 		}
 		//2.手写分页
@@ -298,16 +299,15 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
     public User getCurrentUser(Long id) {
 		User user = userMapper.selectById(id);
-		String x=!StringUtils.isEmpty(user.getPicPath())? "http://"+getHostAddress()+":"+port+"/"+user.getPicPath():"";
-		user.setPicPath(x);
-		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){
-//			byte[] bytes = user.getPhotoData();//转换成字节
-//			if(bytes!=null&&bytes.length>0){
-//				BASE64Encoder encoder = new BASE64Encoder();
-//				String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
-//				png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
-//				user.setPicPath(png_base64);
-//			}
+		//用户没有头像url，则用base64的头像
+		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){//base64的做法
+			byte[] bytes = user.getPhotoData();//转换成字节
+			if(bytes!=null&&bytes.length>0){
+				BASE64Encoder encoder = new BASE64Encoder();
+				String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
+				png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
+				user.setCachePhoto(png_base64);
+			}
 			return user;
 		}
 		return new User();
@@ -341,7 +341,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				clearFile();
 			}
 		};
-		timer2.scheduleAtFixedRate(task2,60000,1000*60L);//延时1分钟、每1小时刷新一次
+		timer2.scheduleAtFixedRate(task2,60000,1000*60*60L);//延时1分钟、每1小时刷新一次
 
 	}
 
@@ -352,13 +352,29 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		queryWrapper.select("picPath");
 		List<User> users = userMapper.selectList(queryWrapper);
 		Set<String> img = Sets.newHashSet();
+		//1.user的文件
+		//2.note的文件
+		QueryWrapper<UserNote> userNoteQueryWrapper=new QueryWrapper<>();
+		userNoteQueryWrapper.isNotNull("img_code");
+		userNoteQueryWrapper.select("img_code");
+		List<UserNote> userNotes = userNoteMapper.selectList(userNoteQueryWrapper);
 		for (User user : users) {
 			String picPath = user.getPicPath();
 			img.add(picPath.substring(picPath.lastIndexOf("\\")+1));
 		}
+		for (UserNote userNote : userNotes) {
+			String imgCode = userNote.getImgCode();
+			String[] split = imgCode.split(";");
+			if(split!=null&&split.length>0){
+				for (int i = 0; i < split.length; i++) {
+					String url=split[i].substring(split[i].lastIndexOf("\\")+1);
+					img.add(url.replaceAll(";",""));
+				}
+			}
+		}
 		log.info("库里的文件："+img.toString());
 		//2.遍历文件目录、删除不存在的文件
-		File file = new File("D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/img/");
+		File file = new File("D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/file/");
 		if (file.exists()) {
 			File[] files = file.listFiles();
 			if (null == files || files.length == 0) {
@@ -471,9 +487,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}
 	}
 
-	public String saveUserImg(MultipartFile file) throws IOException {
+	public String loadingFile(MultipartFile file) throws IOException {
 		// 构建上传文件的存放 “文件夹” 路径
-		String fileDirPath = new String("springBoot_1/src/main/resources/static/img");
+		String fileDirPath = new String("springBoot_1/src/main/resources/static/file");
 		File fileDir = new File(fileDirPath);
 		if(!fileDir.exists()){
 			// 递归生成文件夹
@@ -482,14 +498,14 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		// 拿到文件名
 		String filename = file.getOriginalFilename();
 		int i = new Random().nextInt(100);
-		String name=(System.currentTimeMillis()+i)+"-"+filename;
+		String name=(System.currentTimeMillis()+i)+"@"+filename;
 		// 输出文件夹绝对路径 – 这里的绝对路径是相当于当前项目的路径而不是“容器”路径
 		System.out.println(fileDir.getAbsolutePath());
 		// 构建真实的文件路径D:\gitLocal\springBoot2.0\springBoot_1\src\main\resources\static\img
 		File newFile = new File(fileDir.getAbsolutePath() + File.separator + name);
 		System.out.println(newFile.getAbsolutePath());
-		// 上传图片到 -》 “绝对路径”
+		// 上传到 -》 “绝对路径”
 		file.transferTo(newFile);
-		return "/resources/static/img"+File.separator+newFile.getName();
+		return "http://"+getHostAddress()+":"+port+"/resources/static/file"+File.separator+newFile.getName();
 	}
 }

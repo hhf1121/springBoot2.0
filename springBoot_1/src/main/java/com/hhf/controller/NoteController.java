@@ -33,8 +33,8 @@ public class NoteController {
     }
 
     @GetMapping("queryNoteLitsWithPohot")
-    public List<UserNote> queryNoteLitsWithPohot(){
-        return userNoteService.queryNoteLitsWithPohot();
+    public List<UserNote> queryNoteListWithPohot(){
+        return userNoteService.queryNoteListWithPohot();
     }
 
     @GetMapping("queryNotesTitle")

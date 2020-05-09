@@ -12,16 +12,20 @@ import com.hhf.mapper.BaseDistrictMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.service.IUserNoteService;
 import com.hhf.utils.ResultUtils;
+import com.hhf.vo.ImgVo;
 import com.hhf.vo.TendencyNoteMap;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,6 +40,9 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Autowired
     private BaseDistrictMapper baseDistrictMapper;
+
+    @Value("${server.port}")
+    private String port;
 
 //    @Autowired
 //    private StringRedisTemplate stringRedisTemplate;
@@ -67,6 +74,24 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         List<UserNote> records = iPage.getRecords();
         for (UserNote note:records){
             note.setIdStr(note.getId()+"");
+            //处理多图
+            if(!StringUtils.isEmpty(note.getImgCode())){
+                String[] split = note.getImgCode().split(";");
+                if(split!=null&&split.length>0){
+                    List<ImgVo> imgVos=Lists.newArrayList();
+                    for (int i = 0; i < split.length; i++) {
+                        ImgVo vo=new ImgVo();
+                        String url = split[i];
+//                        String x="http://"+getHostAddress()+":"+port+"/"+url;
+                        vo.setName(url.substring(url.lastIndexOf("@")+1));
+                        vo.setUrl(url);
+                        imgVos.add(vo);
+                        note.setImgVos(imgVos);
+                    }
+                }else {
+                    note.setImgVos(Lists.newArrayList());
+                }
+            }
         }
         return iPage;
     }
@@ -111,7 +136,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
     }
 
     @Override
-    public List<UserNote> queryNoteLitsWithPohot() {
+    public List<UserNote> queryNoteListWithPohot() {
         if(!photoCache.isEmpty()){
             log.info("图片、走本地缓存...");
             return photoCache;
@@ -119,8 +144,35 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         QueryWrapper<UserNote> queryWrapper=new QueryWrapper<>();
         queryWrapper.isNotNull("img_code");
         List<UserNote> userNotes = userNoteMapper.selectList(queryWrapper);
+        for (UserNote userNote : userNotes) {
+            String[] split = userNote.getImgCode().split(";");
+            if(split!=null&&split.length>0){
+                List<ImgVo> imgVos=Lists.newArrayList();
+                for (int i = 0; i < split.length; i++) {
+                    ImgVo vo=new ImgVo();
+                    String url = split[i];
+                    vo.setName(url.substring(url.lastIndexOf("@")+1));
+                    vo.setUrl(url);
+                    imgVos.add(vo);
+                    userNote.setImgVos(imgVos);
+                }
+            }else {
+                userNote.setImgVos(Lists.newArrayList());
+            }
+        }
         photoCache.addAll(userNotes);
         return userNotes;
+    }
+
+    private String getHostAddress(){
+        String hostAddress = null;
+        try {
+            hostAddress = InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            log.error(e.getMessage());
+            hostAddress="localhost";
+        }
+        return hostAddress;
     }
 
     @Override
@@ -213,6 +265,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i = userNoteMapper.updateById(userNote);
         if(i>0){
+            photoCache=Lists.newArrayList();//图片变更，缓存失效
             return ResultUtils.getSuccessResult("更新成功");
         }
         return ResultUtils.getFailResult("更新失败");

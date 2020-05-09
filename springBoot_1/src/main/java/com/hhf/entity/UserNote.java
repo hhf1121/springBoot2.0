@@ -1,6 +1,7 @@
 package com.hhf.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.hhf.vo.ImgVo;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -64,6 +65,9 @@ public class UserNote {
 
     @TableField(exist = false)
     private String timeStr;//返回vo的日期年月日
+
+    @TableField(exist = false)//回显图片url+name
+    private List<ImgVo> imgVos;
 
 
 }

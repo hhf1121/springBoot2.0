@@ -17,7 +17,7 @@ public interface IUserNoteService {
 
     Map<String,Object> deleteNotes(UserNote userNote);
 
-    List<UserNote> queryNoteLitsWithPohot();
+    List<UserNote> queryNoteListWithPohot();
 
     List<UserNote> queryNotesTitle(String title);
 

@@ -120,12 +120,12 @@ public class UserController {
         return ResultUtils.getSuccessResult(userService.queryPage(user));
     }
 
-    //头像上传接口
-    @RequestMapping(value = "vue/loadingUserImg", method = RequestMethod.POST)
+    //文件上传接口
+    @RequestMapping(value = "vue/loadingFile", method = RequestMethod.POST)
     public Map<String, Object> loadingUserImg(@RequestParam("file") MultipartFile file) {
         String result="";
         try{
-            result = userService.saveUserImg(file);
+            result = userService.loadingFile(file);
         }catch (Exception e ){
             return ResultUtils.getFailResult("上传文件异常！");
         }
