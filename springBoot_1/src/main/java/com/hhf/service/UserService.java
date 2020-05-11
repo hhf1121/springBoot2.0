@@ -22,13 +22,16 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.hhf.entity.UserNote;
+import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
+import org.checkerframework.checker.units.qual.A;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
@@ -65,6 +68,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	@Autowired
 	private UserNoteMapper userNoteMapper;
+
+	@Autowired
+	private CommonMapper commonMapper;
 
 	//声明一个布隆过滤器
 	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
@@ -323,6 +329,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
+		//更新url为当前主机ip
+		updateCurrentIP();
 		//初始化布隆过滤器
 		Timer timer=new Timer();
 		TimerTask task=new TimerTask() {
@@ -344,6 +352,34 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		timer2.scheduleAtFixedRate(task2,60000,1000*60*60L);//延时1分钟、每1小时刷新一次
 
 	}
+
+	private void updateCurrentIP() {
+		//1.查询所有的picPath
+		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+		queryWrapper.isNotNull("picPath");
+		queryWrapper.select("picPath");
+		queryWrapper.last("limit 1");
+		User user = userMapper.selectOne(queryWrapper);
+		QueryWrapper<UserNote> userNoteQueryWrapper=new QueryWrapper<>();
+		userNoteQueryWrapper.isNotNull("img_code");
+		userNoteQueryWrapper.select("img_code");
+		userNoteQueryWrapper.last("limit 1");
+		UserNote userNotes = userNoteMapper.selectOne(userNoteQueryWrapper);
+		String picPath = user.getPicPath().split(":")[1];//  http://192.168.202.53:8082/resources/static/file\1589005751161@头像1.png
+		String userIp=picPath.replaceAll("/","");
+		String imgCode = userNotes.getImgCode().split(":")[1];//	http://192.168.202.53:8082/resources/static/file\1589006797861@vue-1.png;
+		String noteIp=imgCode.replaceAll("/","");
+		//更新数据库里图片的ip地址为当前主机的ip
+		Map<String,String> param= Maps.newHashMap();
+		param.put("oldIP",userIp.equals(noteIp)?userIp:"");
+		param.put("newIP",getHostAddress());
+		//更新db里图片的ip地址
+		if(!param.get("oldIP").equals(param.get("newIP"))){
+			commonMapper.updateImgUrlIsCurrentIPByNote(param);
+			commonMapper.updateImgUrlIsCurrentIPByUser(param);
+		}
+	}
+
 
 	private void clearFile() {
 		//1.查询所有的picPath

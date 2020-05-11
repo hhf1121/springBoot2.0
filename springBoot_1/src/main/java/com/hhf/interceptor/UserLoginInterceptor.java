@@ -42,7 +42,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
                              Object handler)throws Exception {
         Cookie[] cookies = request.getCookies();
         String token = "";
-        if(cookies!=null||cookies.length>0){
+        if(cookies!=null&&cookies.length>0){
             for (Cookie cookie : cookies) {
                 if (StringUtils.equals(cookie.getName(),"myToken")) {
                     token = cookie.getValue();
