@@ -31,7 +31,6 @@ import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
-import org.checkerframework.checker.units.qual.A;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
@@ -330,7 +329,11 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		//更新url为当前主机ip
-		updateCurrentIP();
+		try{
+			updateCurrentIP();
+		}catch (Exception e){
+			log.info("图片url解析失败..."+e.getMessage());
+		}
 		//初始化布隆过滤器
 		Timer timer=new Timer();
 		TimerTask task=new TimerTask() {
@@ -375,6 +378,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		param.put("newIP",getHostAddress());
 		//更新db里图片的ip地址
 		if(!param.get("oldIP").equals(param.get("newIP"))){
+			log.info("更新图片url的ip........");
 			commonMapper.updateImgUrlIsCurrentIPByNote(param);
 			commonMapper.updateImgUrlIsCurrentIPByUser(param);
 		}
@@ -410,7 +414,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}
 		log.info("库里的文件："+img.toString());
 		//2.遍历文件目录、删除不存在的文件
-		File file = new File("D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/file/");
+//		String path = ClassUtils.getDefaultClassLoader().getResource("").getPath();
+		//springboot获取当前项目路径的地址
+		String property = System.getProperty("user.dir");
+		File file = new File(property+"/springBoot_1/src/main/resources/static/file/");
 		if (file.exists()) {
 			File[] files = file.listFiles();
 			if (null == files || files.length == 0) {
@@ -544,4 +551,5 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		file.transferTo(newFile);
 		return "http://"+getHostAddress()+":"+port+"/resources/static/file"+File.separator+newFile.getName();
 	}
+
 }
