@@ -2,7 +2,9 @@ package com.hhf.rocketMQ;
 
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
+import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.mapper.UserMapper;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.vo.RegisterMQVo;
@@ -24,7 +26,8 @@ import java.io.UnsupportedEncodingException;
 
 @Slf4j
 @Component
-public class RegisterConsumer{
+@Order(2)
+public class RegisterConsumer implements CommandLineRunner {
 
     /**
      * NameServer 地址
@@ -33,7 +36,7 @@ public class RegisterConsumer{
     private String namesrvAddr;
 
     @Autowired
-    private UserMapper userMapper;
+    private BaseMsgMapper baseMsgMapper;
 
     DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("registerGroup");
 
@@ -48,9 +51,8 @@ public class RegisterConsumer{
             //订阅某Topic下所有类型的消息，Tag用符号 * 表示:consumer.subscribe("MQ_TOPIC", "*", new MessageListener() {……});
             //订阅某Topic下某一种类型的消息，请明确标明Tag：consumer.subscribe("MQ_TOPIC", "TagA", new MessageListener() {……});
             //订阅某Topic下多种类型的消息，请在多个Tag之间用 || 分隔:consumer.subscribe("MQ_TOPIC", "TagA||TagB", new MessageListener() {……});
-
             // 订阅PushTopic下Tag为push的消息,都订阅消息
-            consumer.subscribe("registerTopic", "userByType3");
+            consumer.subscribe("registerTopic", "registerUserTag");
             // 程序第一次启动从消息队列头获取数据
 //            consumer.setConsumeFromWhere(ConsumeFromWhere.CONSUME_FROM_FIRST_OFFSET);
             //可以修改每次消费消息的数量，默认设置是每次消费一条
@@ -63,11 +65,12 @@ public class RegisterConsumer{
                         String info = new String(msg.getBody(), "utf-8");
                         log.info(getClass().getName()+"接收到了消息："+info);
                         RegisterMQVo vo = JSONArray.parseObject(info, RegisterMQVo.class);
-                        User user=new User();
-                        user.setYes(2);
-                        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
-                        queryWrapper.eq("id",vo.getId());
-                        userMapper.update(user,queryWrapper);
+                        BaseMsg baseMsg=new BaseMsg();
+                        baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
+                        baseMsg.setToId(1);
+                        baseMsg.setMsg(vo.getMsg());
+                        baseMsgMapper.insertSelective(baseMsg);
+                        log.info("注册...消费成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                         return ConsumeConcurrentlyStatus.RECONSUME_LATER;
@@ -85,6 +88,11 @@ public class RegisterConsumer{
     public void stopListener(){
         consumer.shutdown();
         log.info("registerConsumer,停止成功...");
+    }
+
+    @Override
+    public void run(String... args) throws Exception {
+        this.messageListener();
     }
 
 }

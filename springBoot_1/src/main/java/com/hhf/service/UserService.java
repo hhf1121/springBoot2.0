@@ -63,6 +63,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
+import javax.annotation.PostConstruct;
 import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -87,6 +88,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
+	//生产者的组名
+	DefaultMQProducer producer= null;
+
 	//声明一个布隆过滤器
 	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
 
@@ -108,7 +112,21 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
     @Value("${server.port}")
     private String port;
-	
+
+    @PostConstruct
+	public void getMQ(){
+		producer=new DefaultMQProducer("registerMsgProducer");
+		//指定NameServer地址，多个地址以 ; 隔开
+		producer.setNamesrvAddr(namesrvAddr);
+		try {
+			producer.start();
+			log.info("mq启动成功...");
+		} catch (MQClientException e) {
+			log.info(e.getMessage());
+			log.info("mq启动失败...");
+		}
+	}
+
 	@Transactional
 	public int insertUser(String userName,String passWord) {
 	    User user=new User();
@@ -597,21 +615,13 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	public Map<String,Object> sendMsgMq(String userId, String msg) {
 		//MQVo
 		RegisterMQVo vo=new RegisterMQVo();
-		vo.setId(userId);
+		vo.setFromId(userId);
 		vo.setMsg(msg);
 		Object jsonObj=JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
-		//生产者的组名
-		DefaultMQProducer producer= new DefaultMQProducer("registerMsgProducer");
-		//指定NameServer地址，多个地址以 ; 隔开
-		producer.setNamesrvAddr(namesrvAddr);
 		try {
-			producer.start();
-			Message message = new Message("registerTopic", "userByType3", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
-			StopWatch stop = new StopWatch();
-			stop.start();
+			Message message = new Message("registerTopic", "registerUserTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
 			SendResult result = producer.send(message);
 			log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
-			stop.stop();
 		} catch (MQClientException e) {
 			log.error(e.getErrorMessage());
 			return ResultUtils.getFailResult("发送失败");

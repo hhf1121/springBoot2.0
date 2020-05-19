@@ -5,7 +5,9 @@ import lombok.Data;
 @Data
 public class RegisterMQVo {
 
-    private String id;
+    private String fromId;
+
+    private String toId;
 
     private String msg;
 }
