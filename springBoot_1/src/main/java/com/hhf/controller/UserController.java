@@ -289,7 +289,7 @@ public class UserController {
     //注册用户
     @RequestMapping(value = "sendAdmin", method = RequestMethod.GET)
     public Map<String, Object> sendAdmin(String userId,String msg) {
-        return ResultUtils.getSuccessResult(userService.sendMsgMq(userId,msg));
+         return userService.sendMsgMq(userId,msg);
     }
 
 

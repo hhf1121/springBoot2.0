@@ -7,6 +7,7 @@ import javax.servlet.http.HttpSession;
 
 import com.alibaba.fastjson.JSONArray;
 import com.hhf.entity.User;
+import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.utils.CurrentUserContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -35,7 +36,6 @@ public class UserLoginInterceptor implements HandlerInterceptor {
 
     @Autowired
     CurrentUserContext currentUserContext;
-
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,

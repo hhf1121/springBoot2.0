@@ -30,7 +30,9 @@ import com.google.common.hash.Funnels;
 import com.hhf.entity.UserNote;
 import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserNoteMapper;
+import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.service.impl.UserNoteService;
+import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.RegisterMQVo;
@@ -87,6 +89,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	//声明一个布隆过滤器
 	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
+
+
+	@Autowired
+	private RegisterConsumer registerConsumer;
 
 //	@Autowired
 //	RedisTemplate<String,String> redisTemplate;
@@ -278,6 +284,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		Cookie cookie=new Cookie("myToken",token);
 		cookie.setPath("/");
 		httpServletResponse.addCookie(cookie);
+		if(user.getYes()==3){
+			//监听mq
+			registerConsumer.messageListener();
+		}
 		return user;
 	}
 
@@ -483,6 +493,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 //				response.sendRedirect("http://localhost:8081/#/Login");;
 			}
 		}
+		registerConsumer.stopListener();
 	}
 
 	public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {
@@ -583,35 +594,40 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}
 	}
 
-	public String sendMsgMq(String userId, String msg) {
+	public Map<String,Object> sendMsgMq(String userId, String msg) {
 		//MQVo
 		RegisterMQVo vo=new RegisterMQVo();
 		vo.setId(userId);
 		vo.setMsg(msg);
-
+		Object jsonObj=JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
 		//生产者的组名
 		DefaultMQProducer producer= new DefaultMQProducer("registerMsgProducer");
 		//指定NameServer地址，多个地址以 ; 隔开
 		producer.setNamesrvAddr(namesrvAddr);
 		try {
 			producer.start();
-			Message message = new Message("registerTopic", "userByType3", msg.getBytes(RemotingHelper.DEFAULT_CHARSET));
+			Message message = new Message("registerTopic", "userByType3", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
 			StopWatch stop = new StopWatch();
 			stop.start();
 			SendResult result = producer.send(message);
 			log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
 			stop.stop();
 		} catch (MQClientException e) {
-			e.printStackTrace();
+			log.error(e.getErrorMessage());
+			return ResultUtils.getFailResult("发送失败");
 		} catch (InterruptedException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
+			return ResultUtils.getFailResult("发送失败");
 		} catch (UnsupportedEncodingException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
+			return ResultUtils.getFailResult("发送失败");
 		} catch (RemotingException e) {
-			e.printStackTrace();
+			log.error(e.getMessage());
+			return ResultUtils.getFailResult("发送失败");
 		} catch (MQBrokerException e) {
-			e.printStackTrace();
+			log.error(e.getErrorMessage());
+			return ResultUtils.getFailResult("发送失败");
 		}
-		return "发送成功";
+		return ResultUtils.getSuccessResult("发送成功");
 	}
 }
