@@ -8,6 +8,7 @@ package com.hhf.service;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -29,8 +30,17 @@ import com.google.common.hash.Funnels;
 import com.hhf.entity.UserNote;
 import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserNoteMapper;
+import com.hhf.service.impl.UserNoteService;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
+import com.hhf.vo.RegisterMQVo;
+import org.apache.rocketmq.client.exception.MQBrokerException;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.remoting.common.RemotingHelper;
+import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
@@ -46,6 +56,7 @@ import com.hhf.entity.User;
 import com.hhf.mapper.UserMapper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
@@ -71,6 +82,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private CommonMapper commonMapper;
 
+	@Autowired
+	private UserNoteService userNoteService;
+
 	//声明一个布隆过滤器
 	BloomFilter<Integer> integerBloomFilter = BloomFilter.create(Funnels.integerFunnel(), 100000, 0.01);
 
@@ -79,6 +93,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 //	@Autowired
 //	private  JedisCluster jedisCluster;
+
+	@Value("${apache.rocketmq.namesrvAddr}")
+	private String namesrvAddr;
 
 	@Autowired(required = false)
 	private Redisson redisson;
@@ -222,6 +239,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 
 	public int insertDataByVue(User user) {
+		if(userNoteService.districtMapCache.get(user.getAddress())!=null){
+			user.setAddress(userNoteService.districtMapCache.get(user.getAddress()));
+		}
 		return userMapper.insert(user);
 	}
 
@@ -552,4 +572,46 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return "http://"+getHostAddress()+":"+port+"/resources/static/file"+File.separator+newFile.getName();
 	}
 
+	public Map<String, Object> checkUserName(String userName) {
+		QueryWrapper<User> queryWrapper=new QueryWrapper<>();
+		queryWrapper.eq("userName",userName);
+		List<User> users = userMapper.selectList(queryWrapper);
+		if(users.isEmpty()){
+			return ResultUtils.getSuccessResult("用户名验证通过");
+		} else{
+			return ResultUtils.getFailResult("用户名已被注册");
+		}
+	}
+
+	public String sendMsgMq(String userId, String msg) {
+		//MQVo
+		RegisterMQVo vo=new RegisterMQVo();
+		vo.setId(userId);
+		vo.setMsg(msg);
+
+		//生产者的组名
+		DefaultMQProducer producer= new DefaultMQProducer("registerMsgProducer");
+		//指定NameServer地址，多个地址以 ; 隔开
+		producer.setNamesrvAddr(namesrvAddr);
+		try {
+			producer.start();
+			Message message = new Message("registerTopic", "userByType3", msg.getBytes(RemotingHelper.DEFAULT_CHARSET));
+			StopWatch stop = new StopWatch();
+			stop.start();
+			SendResult result = producer.send(message);
+			log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
+			stop.stop();
+		} catch (MQClientException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (RemotingException e) {
+			e.printStackTrace();
+		} catch (MQBrokerException e) {
+			e.printStackTrace();
+		}
+		return "发送成功";
+	}
 }

@@ -47,7 +47,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 //    @Autowired
 //    private StringRedisTemplate stringRedisTemplate;
 
-    private Map<String,String> districtMapCache=Maps.newHashMap();//缓存
+    public  static Map<String,String>  districtMapCache=Maps.newHashMap();//缓存
 
     private List<UserNote> photoCache=Lists.newArrayList();
 

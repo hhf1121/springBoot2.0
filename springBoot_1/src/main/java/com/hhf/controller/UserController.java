@@ -271,4 +271,26 @@ public class UserController {
         }
     }
 
+    @GetMapping(value = "/checkUserName")
+    public Map<String,Object> checkUserName(String userName) {
+        try {
+            return userService.checkUserName(userName);
+        } catch (Exception e) {
+            return ResultUtils.getFailResult("更新异常");
+        }
+    }
+
+    //注册用户
+    @RequestMapping(value = "registerUser", method = RequestMethod.POST)
+    public Map<String, Object> registerUser(@RequestBody User user) {
+        return ResultUtils.getSuccessResult(userService.insertDataByVue(user));
+    }
+
+    //注册用户
+    @RequestMapping(value = "sendAdmin", method = RequestMethod.GET)
+    public Map<String, Object> sendAdmin(String userId,String msg) {
+        return ResultUtils.getSuccessResult(userService.sendMsgMq(userId,msg));
+    }
+
+
 }
