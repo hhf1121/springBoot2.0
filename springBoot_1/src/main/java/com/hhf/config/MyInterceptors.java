@@ -24,7 +24,8 @@ public class MyInterceptors  implements WebMvcConfigurer {
 				.excludePathPatterns("/springBoot/verifyCode")//排除验证码
 				.excludePathPatterns("/base/getSelectDistrictByLevel")//注册账号-选择地址
 				.excludePathPatterns("/springBoot/registerUser")//注册账号-用户新增
-				.excludePathPatterns("/springBoot/vue/loadingFile");//注册账号-用户头像
+				.excludePathPatterns("/springBoot/vue/loadingFile")//注册账号-用户头像
+				.excludePathPatterns("/springBoot/checkUserName");//注册账号-用户账号
 //				.excludePathPatterns("/wechatplatformuser/loginnote/updateNoteRBAC");//排除用户点击登录按钮
     }
 

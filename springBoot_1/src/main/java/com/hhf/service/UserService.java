@@ -88,6 +88,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
+	public static List<User> cacheUser=Lists.newArrayList();
+
 	//生产者的组名
 	DefaultMQProducer producer= null;
 
@@ -266,7 +268,11 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		if(userNoteService.districtMapCache.get(user.getAddress())!=null){
 			user.setAddress(userNoteService.districtMapCache.get(user.getAddress()));
 		}
-		return userMapper.insert(user);
+		int insert = userMapper.insert(user);
+		if(insert>0){//重刷缓存、布隆过滤器
+			initBloomFilter();
+		}
+		return insert;
 	}
 
 	public int updateDataByVue(User user) {
@@ -390,7 +396,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				initBloomFilter();
 			}
 		};
-		timer.scheduleAtFixedRate(task,5000,1000*60L);//延时5s、每1分钟刷新一次
+		timer.scheduleAtFixedRate(task,5000,1000*30*60L);//延时5s、半小时刷新一次
 
 		//定时清除已删除的文件
 		Timer timer2=new Timer();
@@ -487,9 +493,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	//初始化布隆过滤器
 	private void initBloomFilter() {
 		QueryWrapper<User> userQueryWrapper=new QueryWrapper<>();
-		userQueryWrapper.select("name");
+//		userQueryWrapper.select("name");
 		List<User> users = userMapper.selectList(userQueryWrapper);
-		List<String> names= Lists.newArrayList();
+		cacheUser=users;
 		for (User user : users) {//放入过滤器中
 			integerBloomFilter.put(user.getName().hashCode());
 		}
@@ -617,6 +623,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		RegisterMQVo vo=new RegisterMQVo();
 		vo.setFromId(userId);
 		vo.setMsg(msg);
+		vo.setToId("1");//管理员的id
 		Object jsonObj=JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
 		try {
 			Message message = new Message("registerTopic", "registerUserTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));

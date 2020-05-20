@@ -10,4 +10,8 @@ public interface IMsgService {
 
     Map<String, Object> getMsgCount();
 
+    Map<String, Object> signRead(BaseMsg baseMsg);
+
+    Map<String, Object> deleteMsgById(BaseMsg baseMsg);
+
 }
