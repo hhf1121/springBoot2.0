@@ -48,4 +48,11 @@ public class MsgController {
         return  msgService.deleteMsgById(baseMsg);
     }
 
+    //用户通过MQ，互相发信息
+    @PostMapping("/sendMsg")
+    public Map<String, Object> sendMsg(@RequestBody BaseMsg baseMsg) {
+        return msgService.sendMsg(baseMsg);
+    }
+
+
 }

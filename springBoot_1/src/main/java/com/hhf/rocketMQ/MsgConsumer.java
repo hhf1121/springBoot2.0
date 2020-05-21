@@ -63,7 +63,7 @@ public class MsgConsumer implements CommandLineRunner {
                         baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
                         baseMsg.setToId(Integer.parseInt(vo.getToId()));
                         baseMsg.setMsg(vo.getMsg());
-                        baseMsgMapper.insert(baseMsg);
+                        baseMsgMapper.insertSelective(baseMsg);
                         log.info("信息....消费成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();

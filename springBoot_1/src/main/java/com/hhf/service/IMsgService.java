@@ -14,4 +14,6 @@ public interface IMsgService {
 
     Map<String, Object> deleteMsgById(BaseMsg baseMsg);
 
+    Map<String, Object> sendMsg(BaseMsg baseMsg);
+
 }

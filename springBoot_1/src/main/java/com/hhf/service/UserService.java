@@ -517,7 +517,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 //				response.sendRedirect("http://localhost:8081/#/Login");;
 			}
 		}
-		registerConsumer.stopListener();
+		//关掉mq服务
+//		registerConsumer.stopListener();
 	}
 
 	public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {

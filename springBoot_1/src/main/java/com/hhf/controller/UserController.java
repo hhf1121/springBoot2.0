@@ -286,7 +286,7 @@ public class UserController {
         return ResultUtils.getSuccessResult(userService.insertDataByVue(user));
     }
 
-    //注册用户
+    //注册-给管理员发信息
     @RequestMapping(value = "sendAdmin", method = RequestMethod.GET)
     public Map<String, Object> sendAdmin(String userId,String msg) {
          return userService.sendMsgMq(userId,msg);
