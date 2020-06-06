@@ -272,7 +272,11 @@
           <artifactId>guava</artifactId>
           <version>25.1-jre</version>
       </dependency>
-
+      <!--thymeleaf-->
+      <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-thymeleaf</artifactId>
+      </dependency>
   </dependencies>
 
   <!-- 打jar包配置、指定主入口 -->
