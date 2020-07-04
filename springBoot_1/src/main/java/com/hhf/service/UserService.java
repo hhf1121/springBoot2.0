@@ -15,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.alibaba.nacos.common.util.UuidUtils;
@@ -27,6 +28,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
+import com.hhf.entity.BaseMsg;
 import com.hhf.entity.UserNote;
 import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserNoteMapper;
@@ -36,6 +38,7 @@ import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.RegisterMQVo;
+import com.hhf.webSocket.WebSocketServer;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -68,6 +71,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.websocket.Session;
 
 @Slf4j
 @Service
@@ -87,6 +91,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	@Autowired
 	private UserNoteService userNoteService;
+
+	@Autowired
+	private WebSocketServer webSocketServer;
 
 	public static List<User> cacheUser=Lists.newArrayList();
 
@@ -114,6 +121,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
     @Value("${server.port}")
     private String port;
+
+    @Autowired
+	private IMsgService msgService;
 
     @PostConstruct
 	public void getMQ(){
@@ -281,7 +291,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		return userMapper.update(user,wrapper);
 	}
 
-	public User queryByVue(String userName, String passWord,String verifyCode,  HttpServletResponse httpServletResponse) {
+	public User queryByVue(String userName, String passWord, String verifyCode, HttpServletResponse httpServletResponse, HttpServletRequest request) throws IOException {
 		//校验验证码：
 		String s = stringRedisTemplate.opsForValue().get(userName);
 		if(!verifyCode.equals(s)){
@@ -504,9 +514,12 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
     public void downUser(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
 		Cookie[] cookies = httpServletRequest.getCookies();
 		String token="";
+		User user=null;
 		for (Cookie cookie : cookies) {
 			if (cookie.getName().equals("myToken")) {
 				token=cookie.getValue();
+				String s = stringRedisTemplate.opsForValue().get(token);
+				 user = JSONArray.parseObject(s, User.class);
 				stringRedisTemplate.delete(token);//删除redis
 				Cookie cookie1 = new Cookie(cookie.getName(), null);
 				cookie1.setMaxAge(0);//cookie失效
@@ -514,11 +527,12 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				response.addCookie(cookie1);
 //				response.setStatus(401);
 //				response.sendError(401);
-//				response.sendRedirect("http://localhost:8081/#/Login");;
+//				response.sendRedirect("http://localhost:8081/#/Login");
+				break;
 			}
 		}
-		//关掉mq服务
-//		registerConsumer.stopListener();
+		//管理员关掉mq服务
+		if(user!=null&&user.getId()==1) registerConsumer.stopListener();
 	}
 
 	public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {
@@ -619,7 +633,15 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		}
 	}
 
-	public Map<String,Object> sendMsgMq(String userId, String msg) {
+	public Map<String,Object> sendMsgMq(String userId, String userName, String msg) {
+		BaseMsg baseMsg=new BaseMsg();
+		baseMsg.setStatus(1);
+		baseMsg.setMsg(msg);
+		baseMsg.setToId(1);//管理员
+		baseMsg.setUserName(userName);
+		baseMsg.setLastTime(new Date());
+		baseMsg.setFromId(Integer.parseInt(userId));
+		msgService.insertEntity(baseMsg);
 		//MQVo
 		RegisterMQVo vo=new RegisterMQVo();
 		vo.setFromId(userId);

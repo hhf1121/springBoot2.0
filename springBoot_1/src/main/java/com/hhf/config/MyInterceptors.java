@@ -25,8 +25,8 @@ public class MyInterceptors  implements WebMvcConfigurer {
 				.excludePathPatterns("/base/getSelectDistrictByLevel")//注册账号-选择地址
 				.excludePathPatterns("/springBoot/registerUser")//注册账号-用户新增
 				.excludePathPatterns("/springBoot/vue/loadingFile")//注册账号-用户头像
-				.excludePathPatterns("/springBoot/checkUserName");//注册账号-用户账号
-//				.excludePathPatterns("/wechatplatformuser/loginnote/updateNoteRBAC");//排除用户点击登录按钮
+				.excludePathPatterns("/springBoot/checkUserName")//注册账号-用户账号
+				.excludePathPatterns("*/msgWebSocket/*");//webSocket长连接
     }
 
     @Override

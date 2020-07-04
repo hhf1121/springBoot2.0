@@ -147,13 +147,15 @@ public class UserController {
     }
 
 
-    //VUE-对应接口
+    //VUE-对应接口（登录）
     @RequestMapping("vue/queryByVue")
-    public Map<String, Object> queryByVue(String userName, String passWord,String verifyCode, HttpServletResponse httpServletResponse) {
+    public Map<String, Object> queryByVue(String userName, String passWord,String verifyCode, HttpServletResponse httpServletResponse,HttpServletRequest request) {
         User user= null;
         try{
-            user = userService.queryByVue(userName, passWord, verifyCode, httpServletResponse);
+            user = userService.queryByVue(userName, passWord, verifyCode, httpServletResponse,request);
         }catch (RuntimeException e){
+            return ResultUtils.getFailResult(e.getMessage());
+        } catch (IOException e) {
             return ResultUtils.getFailResult(e.getMessage());
         }
         return ResultUtils.getSuccessResult(user);
@@ -288,8 +290,8 @@ public class UserController {
 
     //注册-给管理员发信息
     @RequestMapping(value = "sendAdmin", method = RequestMethod.GET)
-    public Map<String, Object> sendAdmin(String userId,String msg) {
-         return userService.sendMsgMq(userId,msg);
+    public Map<String, Object> sendAdmin(String userId,String userName,String msg) {
+         return userService.sendMsgMq(userId,userName,msg);
     }
 
 

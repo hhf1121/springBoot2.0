@@ -15,6 +15,8 @@ public class BaseMsg {
     @TableId(value ="id",type = IdType.AUTO)//自增id
     private Long id;
 
+    private String userName;
+
     private Integer fromId;
 
     private Integer toId;

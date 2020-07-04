@@ -106,6 +106,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
         int i=userNoteMapper.insert(userNote);
         if(i>0){
+            photoCache=Lists.newArrayList();//图片变更，缓存失效
             return ResultUtils.getSuccessResult("保存成功");
         }
         return ResultUtils.getFailResult("保存失败");
@@ -130,6 +131,8 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         List<String> ids = userNote.getIds();
         int i = userNoteMapper.deleteBatchIds(ids);
         if(i==ids.size()){
+            //更新图片缓存
+            photoCache=Lists.newArrayList();
             return ResultUtils.getSuccessResult("删除成功");
         }
         return ResultUtils.getFailResult("删除失败");

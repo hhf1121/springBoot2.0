@@ -1,27 +1,35 @@
 package com.hhf.rocketMQ;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.google.common.collect.Lists;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.mapper.UserMapper;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.vo.RegisterMQVo;
+import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.Message;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.UnsupportedEncodingException;
-
+import java.util.Date;
+import java.util.List;
 
 
 @Slf4j
@@ -29,14 +37,17 @@ import java.io.UnsupportedEncodingException;
 @Order(2)
 public class RegisterConsumer implements CommandLineRunner {
 
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    private WebSocketServer webSocketServer;
+
     /**
      * NameServer 地址
      */
     @Value("${apache.rocketmq.namesrvAddr}")
     private String namesrvAddr;
-
-    @Autowired
-    private BaseMsgMapper baseMsgMapper;
 
     DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("registerGroup");
 
@@ -65,12 +76,32 @@ public class RegisterConsumer implements CommandLineRunner {
                         String info = new String(msg.getBody(), "utf-8");
                         log.info(getClass().getName()+"接收到了消息："+info);
                         RegisterMQVo vo = JSONArray.parseObject(info, RegisterMQVo.class);
-                        BaseMsg baseMsg=new BaseMsg();
-                        baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
-                        baseMsg.setToId(1);
-                        baseMsg.setMsg(vo.getMsg());
-                        baseMsgMapper.insertSelective(baseMsg);
-                        log.info("注册...消费成功...");
+                        //存入redis(更新redis)
+                        String user = stringRedisTemplate.opsForValue().get(vo.getToId());
+                        List<BaseMsg> msgRedisVos = Lists.newArrayList();
+                        if(!StringUtils.isEmpty(user)){
+                            msgRedisVos = JSONArray.parseArray(user, BaseMsg.class);
+                            BaseMsg msg1 = new BaseMsg();
+                            msg1.setFromId(Integer.parseInt(vo.getFromId()));
+                            msg1.setToId(Integer.parseInt(vo.getToId()));
+                            msg1.setMsg(vo.getMsg());
+                            msg1.setLastTime(new Date());
+                            msgRedisVos.add(msg1);
+                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                        }else{
+                            BaseMsg baseMsg = new BaseMsg();
+                            baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
+                            baseMsg.setToId(Integer.parseInt(vo.getToId()));
+                            baseMsg.setMsg(vo.getMsg());
+                            baseMsg.setLastTime(new Date());
+                            msgRedisVos.add(baseMsg);
+                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                        }
+                        //webSocket发送信息
+                        webSocketServer.sendOneMessage(vo.getToId(),msgRedisVos.size()+"");
+                        log.info("消息mq转储到redis成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                         return ConsumeConcurrentlyStatus.RECONSUME_LATER;

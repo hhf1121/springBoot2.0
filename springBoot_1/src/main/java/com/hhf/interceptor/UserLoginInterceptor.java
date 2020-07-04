@@ -32,7 +32,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
     protected org.slf4j.Logger logger = LoggerFactory.getLogger(getClass());
 
     @Autowired
-    StringRedisTemplate stringRedisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Autowired
     CurrentUserContext currentUserContext;
@@ -66,6 +66,10 @@ public class UserLoginInterceptor implements HandlerInterceptor {
         stringRedisTemplate.opsForValue().set(token,s,30, TimeUnit.MINUTES);
         logger.info("已登录");
         return true;
+    }
+
+   public StringRedisTemplate getRedis(){
+        return this.stringRedisTemplate;
     }
 
 }
