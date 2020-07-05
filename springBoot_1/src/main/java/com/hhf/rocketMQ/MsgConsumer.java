@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.hhf.entity.BaseMsg;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.mapper.UserMapper;
+import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.RegisterMQVo;
 import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +46,8 @@ public class MsgConsumer implements CommandLineRunner {
     @Autowired
     private WebSocketServer webSocketServer;
 
+    private SnowflakeIdWorker idWorker = new SnowflakeIdWorker(0, 0);
+
     DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("msgGroup");
 
     /**
@@ -81,6 +84,7 @@ public class MsgConsumer implements CommandLineRunner {
                             baseMsg.setToId(Integer.parseInt(vo.getToId()));
                             baseMsg.setMsg(vo.getMsg());
                             baseMsg.setLastTime(new Date());
+                            baseMsg.setSign(idWorker.nextId()+"");
                             msgRedisVos.add(baseMsg);
                             Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
                             stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
@@ -90,6 +94,7 @@ public class MsgConsumer implements CommandLineRunner {
                             baseMsg.setToId(Integer.parseInt(vo.getToId()));
                             baseMsg.setMsg(vo.getMsg());
                             baseMsg.setLastTime(new Date());
+                            baseMsg.setSign(idWorker.nextId()+"");
                             msgRedisVos.add(baseMsg);
                             Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
                             stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis

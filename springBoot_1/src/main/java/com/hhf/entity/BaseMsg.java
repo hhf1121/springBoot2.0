@@ -30,6 +30,8 @@ public class BaseMsg {
 
     private Date lastTime;
 
+    @TableField(exist = false)
+    private String sign;//redis标识，用雪花算法
 
     //当前页
     @TableField(exist = false)

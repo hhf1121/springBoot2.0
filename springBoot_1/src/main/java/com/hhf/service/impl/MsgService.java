@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hhf.entity.BaseMsg;
@@ -29,21 +30,20 @@ import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.websocket.Session;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @Slf4j
-public class MsgService implements IMsgService {
+public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IMsgService {
 
     @Autowired
     private BaseMsgMapper baseMsgMapper;
@@ -145,22 +145,46 @@ public class MsgService implements IMsgService {
     }
 
     @Override
-    public Map<String, Object> signRead(BaseMsg baseMsg) {
-        List<String> ids = baseMsg.getIds();
-        int update=0;
-        if(!ids.isEmpty()){
-//            BaseMsg baseMsg1=new BaseMsg();
-//            baseMsg1.setStatus(1);//已读
-            UpdateWrapper updateWrapper=new UpdateWrapper();
-            updateWrapper.set("status",1);
-            updateWrapper.in("id",ids);
-             update = baseMsgMapper.update(new BaseMsg(), updateWrapper);
+    public Map<String, Object> signRead(MsgVo baseMsg) {
+        User currentUser = CurrentUserContext.getCurrentUser();
+        List<BaseMsg> baseMsgList = baseMsg.getBaseMsgList();
+        //获取redis中的数据
+        String userUnread = redisTemplate.opsForValue().get(currentUser.getId()+"");
+        List<BaseMsg> redisBaseMsg = JSONArray.parseArray(userUnread, BaseMsg.class);
+        //当前操作的数据
+        //对比sgin
+        List<String> sgins=Lists.newArrayList();
+        for (BaseMsg msg : baseMsgList) {
+            setDefaultValue(msg,currentUser);
+            sgins.add(msg.getSign());
         }
-        if(update>0){
+        //guava处理list、切分小list
+        List<List<BaseMsg>> partition = Lists.partition(baseMsgList, 500);
+        boolean flag=false;
+        for (List<BaseMsg> baseMsgs : partition) {
+            flag=saveBatch(baseMsgs);
+        }
+        if(flag){
+            //修改redis
+            List<BaseMsg> newReids=Lists.newArrayList();
+            for (BaseMsg msg : redisBaseMsg) {
+                if(!sgins.contains(msg.getSign())){
+                    newReids.add(msg);
+                }
+            }
+            Object jsonObj= JSON.toJSONString(newReids, SerializerFeature.WriteMapNullValue);
+            redisTemplate.opsForValue().set(currentUser.getId()+"",jsonObj.toString());
             return ResultUtils.getSuccessResult("已标记为已读");
         }
         return  ResultUtils.getFailResult("标记失败");
     }
+
+    private void setDefaultValue(BaseMsg msg, User currentUser) {
+        if(StringUtils.isBlank(msg.getUserName()))msg.setUserName(currentUser.getUserName());
+        msg.setIsDelete(0);
+        msg.setStatus(1);
+    }
+
 
     @Override
     public Map<String, Object> deleteMsgs(MsgVo baseMsg) {

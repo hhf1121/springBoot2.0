@@ -39,18 +39,18 @@ public class MsgController {
 
     /**
      * 标记已读
-     * @param baseMsg
+     * @param baseMsgList
      * @return
      */
     @PostMapping("/signRead")
-    public Map<String,Object> signRead(@RequestBody BaseMsg baseMsg){
-        return  msgService.signRead(baseMsg);
+    public Map<String,Object> signRead(@RequestBody MsgVo baseMsgList){
+        return  msgService.signRead(baseMsgList);
     }
 
 
     /**
      * 批量删除
-     * @param baseMsg
+     * @param baseMsgList
      * @return
      */
     @PostMapping("/deleteMsgs")
