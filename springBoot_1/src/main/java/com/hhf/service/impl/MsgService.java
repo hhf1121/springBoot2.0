@@ -19,6 +19,7 @@ import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
 import com.hhf.vo.RegisterMQVo;
+import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.exception.MQBrokerException;
@@ -40,6 +41,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -58,6 +60,9 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
 
     @Autowired
     private StringRedisTemplate redisTemplate;
+
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     @PostConstruct
     public void getMQ(){
@@ -98,6 +103,7 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
         for (BaseMsg record : records) {
             record.setFromName(userMaps.get(record.getFromId()+""));
             record.setToName(userMaps.get(record.getToId()+""));
+            record.setIdstr(record.getId()+"");
         }
         return iPage;
     }
@@ -174,6 +180,8 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             }
             Object jsonObj= JSON.toJSONString(newReids, SerializerFeature.WriteMapNullValue);
             redisTemplate.opsForValue().set(currentUser.getId()+"",jsonObj.toString());
+            //webSocket发送信息
+            webSocketServer.sendOneMessage(currentUser.getId()+"",newReids.size()+"");
             return ResultUtils.getSuccessResult("已标记为已读");
         }
         return  ResultUtils.getFailResult("标记失败");
@@ -188,13 +196,33 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
 
     @Override
     public Map<String, Object> deleteMsgs(MsgVo baseMsg) {
+        User currentUser = CurrentUserContext.getCurrentUser();
         List<BaseMsg> baseMsgList = baseMsg.getBaseMsgList();
+        //获取redis中的数据
+        String redisAll = redisTemplate.opsForValue().get(currentUser.getId()+"");
+        List<BaseMsg> redisBaseMsg = JSONArray.parseArray(redisAll, BaseMsg.class);
         int update=0;
         if(!baseMsgList.isEmpty()){
-            UpdateWrapper updateWrapper=new UpdateWrapper();
-            updateWrapper.set("is_delete",1);
-            updateWrapper.in("id",baseMsgList);
-            update = baseMsgMapper.update(new BaseMsg(), updateWrapper);
+            if(StringUtils.isBlank(baseMsgList.get(0).getSign())){ //已读、已发
+                List<String> ids = Lists.newArrayList();
+                for (BaseMsg msg : baseMsgList) {
+                    ids.add(msg.getIdstr());
+                }
+                UpdateWrapper updateWrapper=new UpdateWrapper();
+                updateWrapper.set("is_delete",1);
+                updateWrapper.in("id",ids);
+                update = baseMsgMapper.update(new BaseMsg(), updateWrapper);
+            }else {//redis-->删除未读
+                List<String> sgins = Lists.newArrayList();
+                for (BaseMsg msg : baseMsgList) {
+                    sgins.add(msg.getSign());
+                }
+                List<BaseMsg> isNews = redisBaseMsg.stream().filter(o -> !sgins.contains(o.getSign())).collect(Collectors.toList());
+                Object jsonObj= JSON.toJSONString(isNews, SerializerFeature.WriteMapNullValue);
+                redisTemplate.opsForValue().set(baseMsgList.get(0).getToId()+"",jsonObj.toString());
+                update=sgins.size();
+                webSocketServer.sendOneMessage(baseMsgList.get(0).getToId()+"",isNews.size()+"");
+            }
         }
         if(update>0){
             return ResultUtils.getSuccessResult("删除成功");
@@ -204,11 +232,6 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
 
     @Override
     public Map<String, Object> sendMsg(BaseMsg baseMsg, HttpServletRequest request) {
-        //保存作为发件方的消息记录
-        int i = baseMsgMapper.insertSelective(baseMsg);
-        if(i<1){
-            return ResultUtils.getFailResult("消息保存失败");
-        }
         //MQVo
         RegisterMQVo vo=new RegisterMQVo();
         vo.setFromId(baseMsg.getFromId()+"");
@@ -218,6 +241,11 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
         try {
             Message message = new Message("msgTopic", "msgTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
             SendResult result = producer.send(message);
+            //保存作为发件方的消息记录
+            int i = baseMsgMapper.insertSelective(baseMsg);
+            if(i<1){
+                return ResultUtils.getFailResult("消息保存失败");
+            }
             log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
         } catch (MQClientException e) {
             log.error(e.getErrorMessage());
