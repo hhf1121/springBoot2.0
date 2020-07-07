@@ -2,6 +2,7 @@ package com.hhf.rocketMQ;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.google.common.collect.Lists;
 import com.hhf.entity.BaseMsg;
@@ -26,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -74,33 +76,35 @@ public class MsgConsumer implements CommandLineRunner {
                         String info = new String(msg.getBody(), "utf-8");
                         log.info(getClass().getName()+"接收到了消息："+info);
                         RegisterMQVo vo = JSONArray.parseObject(info, RegisterMQVo.class);
-                        //存入redis(更新redis)
-                        String user = stringRedisTemplate.opsForValue().get(vo.getToId());
-                        List<BaseMsg> msgRedisVos = Lists.newArrayList();
-                        if(!StringUtils.isEmpty(user)){
-                            msgRedisVos = JSONArray.parseArray(user, BaseMsg.class);
+                        //存入redis(更新redis)  改为list存储
+                        long countSize=stringRedisTemplate.opsForList().size("Msg_userId:"+vo.getToId());
+                        if(countSize>0L){
                             BaseMsg baseMsg = new BaseMsg();
                             baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
                             baseMsg.setToId(Integer.parseInt(vo.getToId()));
                             baseMsg.setMsg(vo.getMsg());
-                            baseMsg.setLastTime(new Date());
+                            String time = new Date().getTime()+"";
+                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+                            baseMsg.setLastTime(new Date(now));
                             baseMsg.setSign(idWorker.nextId()+"");
-                            msgRedisVos.add(baseMsg);
-                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+                            countSize=countSize+1;
                         }else{
                             BaseMsg baseMsg = new BaseMsg();
                             baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
                             baseMsg.setToId(Integer.parseInt(vo.getToId()));
                             baseMsg.setMsg(vo.getMsg());
-                            baseMsg.setLastTime(new Date());
+                            String time = new Date().getTime()+"";
+                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+                            baseMsg.setLastTime(new Date(now));
                             baseMsg.setSign(idWorker.nextId()+"");
-                            msgRedisVos.add(baseMsg);
-                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+                            countSize=1;
                         }
                         //webSocket发送信息
-                        webSocketServer.sendOneMessage(vo.getToId(),msgRedisVos.size()+"");
+                        webSocketServer.sendOneMessage(vo.getToId(),countSize+"");
                         log.info("消息mq转储到redis成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();

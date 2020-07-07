@@ -11,18 +11,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-
-import com.alibaba.fastjson.JSONArray;
-import com.hhf.entity.BaseMsg;
-import com.hhf.interceptor.UserLoginInterceptor;
-import com.mysql.cj.xdevapi.JsonArray;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @Component
@@ -31,7 +22,7 @@ import org.springframework.util.StringUtils;
 public class WebSocketServer {
 
     /**
-     * 此处是解决无法注入的关键
+     * 无法注入,在启动类里手动注入
      */
     private static StringRedisTemplate stringRedisTemplate;
 
@@ -48,10 +39,9 @@ public class WebSocketServer {
         sessionPool.put(userId, session);
         log.info(userId+"【websocket消息】有新的连接，总数为:"+webSockets.size());
 
-        String msgs = stringRedisTemplate.opsForValue().get(userId);
-        if(!StringUtils.isEmpty(msgs)){
-            List<BaseMsg> baseMsgs = JSONArray.parseArray(msgs, BaseMsg.class);
-            sendOneMessage(userId,baseMsgs.size()+"");
+        long size = stringRedisTemplate.opsForList().size("Msg_userId:"+userId);
+        if(size>0){
+            sendOneMessage(userId,size+"");
         }
     }
 

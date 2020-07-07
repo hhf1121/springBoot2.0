@@ -2,6 +2,7 @@ package com.hhf.service.impl;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -110,13 +111,18 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
 
     private IPage<BaseMsg> getPageByRedis(BaseMsg baseMsg, Integer id) {
         Page<BaseMsg> resultPage = new Page<BaseMsg>();
-        String unread = redisTemplate.opsForValue().get(id+"");
-        if(StringUtils.isBlank(unread))return new Page<>();
-        List<BaseMsg> baseMsgs = JSONArray.parseArray(unread, BaseMsg.class);
+        List<String> range = redisTemplate.opsForList().range("Msg_userId:"+id, 0, -1);
+        if(range.isEmpty())return new Page<>();
+        List<BaseMsg> baseMsgs=Lists.newArrayList();
+        for (String s : range) {
+            JSONObject jsonObject = JSONObject.parseObject(s);
+            BaseMsg baseMsg1 = JSONObject.toJavaObject(jsonObject, BaseMsg.class);
+            baseMsgs.add(baseMsg1);
+        }
+        List<BaseMsg> baseMsgs1 =Lists.newArrayList();
         Integer pageSize = baseMsg.getPageSize();//页面容量
         Integer pageIndex = baseMsg.getPageIndex();//当前页
         int start=(pageIndex-1)*pageSize;
-        List<BaseMsg> baseMsgs1 =Lists.newArrayList();
         int totalPage=baseMsgs.size()%pageSize>0?baseMsgs.size()/pageSize+1:baseMsgs.size()/pageSize;
         if(pageIndex<=totalPage){
             baseMsgs1 = baseMsgs.subList(start, pageSize * pageIndex+1>baseMsgs.size()?baseMsgs.size():pageSize * pageIndex+1);
@@ -154,11 +160,7 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
     public Map<String, Object> signRead(MsgVo baseMsg) {
         User currentUser = CurrentUserContext.getCurrentUser();
         List<BaseMsg> baseMsgList = baseMsg.getBaseMsgList();
-        //获取redis中的数据
-        String userUnread = redisTemplate.opsForValue().get(currentUser.getId()+"");
-        List<BaseMsg> redisBaseMsg = JSONArray.parseArray(userUnread, BaseMsg.class);
-        //当前操作的数据
-        //对比sgin
+        //当前操作的数据,转换成jsonString、然后删除redis里的
         List<String> sgins=Lists.newArrayList();
         for (BaseMsg msg : baseMsgList) {
             setDefaultValue(msg,currentUser);
@@ -171,17 +173,21 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             flag=saveBatch(baseMsgs);
         }
         if(flag){
-            //修改redis
-            List<BaseMsg> newReids=Lists.newArrayList();
-            for (BaseMsg msg : redisBaseMsg) {
-                if(!sgins.contains(msg.getSign())){
-                    newReids.add(msg);
-                }
+            //更新redis的list，删除入库的未读。
+            int deleteCount=0;
+            for (BaseMsg msg : baseMsgList) {
+                BaseMsg deleteMsg = new BaseMsg();
+                deleteMsg.setFromId(msg.getFromId());
+                deleteMsg.setToId(msg.getToId());
+                deleteMsg.setMsg(msg.getMsg());
+                deleteMsg.setLastTime(msg.getLastTime());
+                deleteMsg.setSign(msg.getSign());
+                Object jsonObj= JSON.toJSONString(deleteMsg, SerializerFeature.WriteMapNullValue);
+                deleteCount+=redisTemplate.opsForList().remove("Msg_userId:"+currentUser.getId(),0,jsonObj.toString());
             }
-            Object jsonObj= JSON.toJSONString(newReids, SerializerFeature.WriteMapNullValue);
-            redisTemplate.opsForValue().set(currentUser.getId()+"",jsonObj.toString());
+            Long size = redisTemplate.opsForList().size("Msg_userId:" + currentUser.getId());
             //webSocket发送信息
-            webSocketServer.sendOneMessage(currentUser.getId()+"",newReids.size()+"");
+            webSocketServer.sendOneMessage(currentUser.getId()+"",size+"");
             return ResultUtils.getSuccessResult("已标记为已读");
         }
         return  ResultUtils.getFailResult("标记失败");
@@ -198,9 +204,6 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
     public Map<String, Object> deleteMsgs(MsgVo baseMsg) {
         User currentUser = CurrentUserContext.getCurrentUser();
         List<BaseMsg> baseMsgList = baseMsg.getBaseMsgList();
-        //获取redis中的数据
-        String redisAll = redisTemplate.opsForValue().get(currentUser.getId()+"");
-        List<BaseMsg> redisBaseMsg = JSONArray.parseArray(redisAll, BaseMsg.class);
         int update=0;
         if(!baseMsgList.isEmpty()){
             if(StringUtils.isBlank(baseMsgList.get(0).getSign())){ //已读、已发
@@ -213,15 +216,20 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
                 updateWrapper.in("id",ids);
                 update = baseMsgMapper.update(new BaseMsg(), updateWrapper);
             }else {//redis-->删除未读
-                List<String> sgins = Lists.newArrayList();
+                int deleteCount=0;
                 for (BaseMsg msg : baseMsgList) {
-                    sgins.add(msg.getSign());
+                    BaseMsg deleteMsg = new BaseMsg();
+                    deleteMsg.setFromId(msg.getFromId());
+                    deleteMsg.setToId(msg.getToId());
+                    deleteMsg.setMsg(msg.getMsg());
+                    deleteMsg.setLastTime(msg.getLastTime());
+                    deleteMsg.setSign(msg.getSign());
+                    Object jsonObj= JSON.toJSONString(deleteMsg, SerializerFeature.WriteMapNullValue);
+                    deleteCount += redisTemplate.opsForList().remove("Msg_userId:"+currentUser.getId(), 0, jsonObj.toString());
                 }
-                List<BaseMsg> isNews = redisBaseMsg.stream().filter(o -> !sgins.contains(o.getSign())).collect(Collectors.toList());
-                Object jsonObj= JSON.toJSONString(isNews, SerializerFeature.WriteMapNullValue);
-                redisTemplate.opsForValue().set(baseMsgList.get(0).getToId()+"",jsonObj.toString());
-                update=sgins.size();
-                webSocketServer.sendOneMessage(baseMsgList.get(0).getToId()+"",isNews.size()+"");
+                Long size = redisTemplate.opsForList().size("Msg_userId:" + currentUser.getId());
+                update=deleteCount;
+                webSocketServer.sendOneMessage(baseMsgList.get(0).getToId()+"",size+"");
             }
         }
         if(update>0){

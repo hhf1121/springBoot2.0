@@ -79,32 +79,34 @@ public class RegisterConsumer implements CommandLineRunner {
                         log.info(getClass().getName()+"接收到了消息："+info);
                         RegisterMQVo vo = JSONArray.parseObject(info, RegisterMQVo.class);
                         //存入redis(更新redis)
-                        String user = stringRedisTemplate.opsForValue().get(vo.getToId());
-                        List<BaseMsg> msgRedisVos = Lists.newArrayList();
-                        if(!StringUtils.isEmpty(user)){
-                            msgRedisVos = JSONArray.parseArray(user, BaseMsg.class);
+                        long size=stringRedisTemplate.opsForList().size("Msg_userId:"+vo.getToId());
+                        if(size>0L){
                             BaseMsg msg1 = new BaseMsg();
                             msg1.setFromId(Integer.parseInt(vo.getFromId()));
                             msg1.setToId(Integer.parseInt(vo.getToId()));
                             msg1.setMsg(vo.getMsg());
-                            msg1.setLastTime(new Date());
+                            String time = new Date().getTime()+"";
+                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+                            msg1.setLastTime(new Date(now));
                             msg1.setSign(idWorker.nextId()+"");
-                            msgRedisVos.add(msg1);
-                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                            Object jsonObj= JSON.toJSONString(msg1, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+                            size=size+1;
                         }else{
                             BaseMsg baseMsg = new BaseMsg();
                             baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
                             baseMsg.setToId(Integer.parseInt(vo.getToId()));
                             baseMsg.setMsg(vo.getMsg());
-                            baseMsg.setLastTime(new Date());
+                            String time = new Date().getTime()+"";
+                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+                            baseMsg.setLastTime(new Date(now));
                             baseMsg.setSign(idWorker.nextId()+"");
-                            msgRedisVos.add(baseMsg);
-                            Object jsonObj= JSON.toJSONString(msgRedisVos, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForValue().set(vo.getToId(),jsonObj.toString());//存入redis
+                            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
+                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+                            size=1;
                         }
                         //webSocket发送信息
-                        webSocketServer.sendOneMessage(vo.getToId(),msgRedisVos.size()+"");
+                        webSocketServer.sendOneMessage(vo.getToId(),size+"");
                         log.info("消息mq转储到redis成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
