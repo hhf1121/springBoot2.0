@@ -38,4 +38,16 @@ public class BaseController {
         return baseService.getSelectDistrictByLevel(level);
     }
 
+
+    /**
+     * 根据编码查询下一级的数据
+     * @param code
+     * @return
+     */
+    @RequestMapping("/getDistrictByCode")
+    public Map<String,Object> getDistrictByCode(String code){
+        return baseService.getDistrictByCode(code);
+    }
+
+
 }

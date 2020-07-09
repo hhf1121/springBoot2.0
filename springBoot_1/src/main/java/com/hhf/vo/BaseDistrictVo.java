@@ -13,6 +13,8 @@ public class BaseDistrictVo {
 
     private String level;
 
+    private String parentCode;
+
     private List<BaseDistrictVo> children;
 
     public String getValue() {
@@ -48,5 +50,13 @@ public class BaseDistrictVo {
 
     public void setChildren(List<BaseDistrictVo> children) {
         this.children = children;
+    }
+
+    public String getParentCode() {
+        return parentCode;
+    }
+
+    public void setParentCode(String parentCode) {
+        this.parentCode = parentCode;
     }
 }

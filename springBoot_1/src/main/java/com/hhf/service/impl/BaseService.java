@@ -87,6 +87,7 @@ public class BaseService implements IBaseService {
                     BaseDistrictVo pr = new BaseDistrictVo();//省
                     pr.setValue(pro.getCode()+"");
                     pr.setLabel(pro.getName());
+                    pr.setParentCode(pro.getParentCode());
                     pr.setLevel("1");
                     for (BaseDistrict cit : city) {
                         List<BaseDistrictVo> citylist=Lists.newArrayList();
@@ -94,6 +95,7 @@ public class BaseService implements IBaseService {
                         if ((pro.getCode() + "").equals(cit.getParentCode())) {
                             ci.setValue(cit.getCode()+"");
                             ci.setLabel(cit.getName());
+                            ci.setParentCode(cit.getParentCode());
                             ci.setLevel("2");
                             prolist.add(ci);
                             for (BaseDistrict zon : zone) {
@@ -102,6 +104,7 @@ public class BaseService implements IBaseService {
                                 if ((cit.getCode() + "").equals(zon.getParentCode())) {
                                     zo.setValue(zon.getCode()+"");
                                     zo.setLabel(zon.getName());
+                                    zo.setParentCode(zon.getParentCode());
                                     zo.setLevel("3");
                                     citylist.add(zo);
                                     for (BaseDistrict tow : town) {
@@ -110,6 +113,7 @@ public class BaseService implements IBaseService {
                                             to.setValue(tow.getCode()+"");
                                             to.setLabel(tow.getName());
                                             to.setLevel("4");
+                                            to.setParentCode(tow.getParentCode());
                                             zoneList.add(to);
                                         }
                                     }
@@ -137,6 +141,7 @@ public class BaseService implements IBaseService {
                 result.setLevel("0");
                 result.setLabel(cou.getName());
                 result.setValue(cou.getCode()+"");
+                result.setParentCode(cou.getParentCode());
                 result.setChildren(vos);
             }
             vos=Lists.newArrayList(result);
@@ -146,6 +151,24 @@ public class BaseService implements IBaseService {
 //        Object jsonObj = JSONArray.toJSON(vos);
         log.info(jsonObj.toString());
         stringRedisTemplate.opsForValue().set(level,jsonObj.toString(),60,TimeUnit.MINUTES);
+        return ResultUtils.getSuccessResult(vos);
+    }
+
+    @Override
+    public Map<String, Object> getDistrictByCode(String code) {
+        if(StringUtils.isEmpty(code))return ResultUtils.getFailResult("编码为空");
+        QueryWrapper<BaseDistrict> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("parent_code",code);
+        List<BaseDistrict> baseDistricts = baseDistrictMapper.selectList(queryWrapper);
+        List<BaseDistrictVo> vos=Lists.newArrayList();
+        for (BaseDistrict baseDistrict : baseDistricts) {
+            BaseDistrictVo vo=new BaseDistrictVo();
+            vo.setLabel(baseDistrict.getName());
+            vo.setValue(baseDistrict.getCode()+"");
+            vo.setLevel(baseDistrict.getLevelType());
+            vo.setParentCode(baseDistrict.getParentCode());
+            vos.add(vo);
+        }
         return ResultUtils.getSuccessResult(vos);
     }
 

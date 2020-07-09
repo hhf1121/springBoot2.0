@@ -8,4 +8,6 @@ public interface IBaseService {
     Map<String, Object> getDistrict(String code, String level);
 
     Map<String, Object> getSelectDistrictByLevel(String level) throws ExecutionException, InterruptedException;
+
+    Map<String, Object> getDistrictByCode(String code);
 }
