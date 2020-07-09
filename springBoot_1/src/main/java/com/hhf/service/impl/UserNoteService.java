@@ -6,14 +6,17 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.hhf.entity.BaseConfig;
 import com.hhf.entity.BaseDistrict;
 import com.hhf.entity.UserNote;
 import com.hhf.mapper.BaseDistrictMapper;
 import com.hhf.mapper.UserNoteMapper;
+import com.hhf.service.IBaseConfigService;
 import com.hhf.service.IUserNoteService;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.ImgVo;
 import com.hhf.vo.TendencyNoteMap;
+import com.hhf.vo.TypeGroup;
 import lombok.extern.slf4j.Slf4j;
 import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.InitializingBean;
@@ -40,6 +43,9 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
 
     @Autowired
     private BaseDistrictMapper baseDistrictMapper;
+
+    @Autowired
+    private IBaseConfigService baseConfigService;
 
     @Value("${server.port}")
     private String port;
@@ -213,49 +219,50 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
             set.add(userNote.getTimeStr());
         }
         //处理数据（展现：某项类型，花费的全部金额、都一个日期list）
-        List<UserNote> list1 = userNotes.stream().filter(o -> o.getNoteType() == 1).collect(Collectors.toList());
-        List<UserNote> list2 =userNotes.stream().filter(o->o.getNoteType()==2).collect(Collectors.toList());
-        List<UserNote> list3 =userNotes.stream().filter(o->o.getNoteType()==3).collect(Collectors.toList());
-        List<UserNote> list4 =userNotes.stream().filter(o->o.getNoteType()==4).collect(Collectors.toList());
-        List<TendencyNoteMap> list= Lists.newArrayList();
+        Map<Integer, List<UserNote>> groups = userNotes.stream().collect(Collectors.groupingBy(UserNote::getNoteType));
+        //查字典里，config_code总共有多少种
+        QueryWrapper<BaseConfig> queryConfig=new QueryWrapper<>();
+        queryConfig.select("type_value","type_label");
+        queryConfig.eq("config_code","cost_type");
+        List<BaseConfig> baseConfigs = baseConfigService.list(queryConfig);
+        Map<Integer, List<BaseConfig>> baseType = baseConfigs.stream().collect(Collectors.groupingBy(BaseConfig::getTypeValue));
+        List<TendencyNoteMap> result= Lists.newArrayList();
         List<String> lists=Lists.newArrayList(set);
-        for (int i = 0; i < lists.size(); i++) {
+        for (int i = 0; i < lists.size(); i++) {//日期
             TendencyNoteMap tendencyNoteMap=new TendencyNoteMap();
-            BigDecimal yf=new BigDecimal(0);
-            BigDecimal sw=new BigDecimal(0);
-            BigDecimal zs=new BigDecimal(0);
-            BigDecimal lx=new BigDecimal(0);
-            for (int j = 0; j < list1.size(); j++) {
-                if(list1.get(j).getTimeStr().equals(lists.get(i))){
-                    yf=yf.add(list1.get(j).getNoteMoney());
+            tendencyNoteMap.setTimeStr(lists.get(i));//某天
+            Set<Integer> types = baseType.keySet();
+            List<TypeGroup> typeGroups=Lists.newArrayList();
+            for (Integer one : types) {//某一项，某一天的费用累计
+                List<UserNote> typeNotes = groups.get(one);
+                if(typeNotes!=null&&!typeNotes.isEmpty()){
+                    TypeGroup typeGroup=new TypeGroup();
+                    typeGroup.setName(baseType.get(one).get(0).getTypeLabel());
+                    typeGroup.setType(one.toString());
+                    BigDecimal counts=new BigDecimal(0);
+                    for (int j = 0; j < typeNotes.size(); j++) {
+                        if(typeNotes.get(j).getTimeStr().equals(lists.get(i))){
+                            counts=counts.add(typeNotes.get(j).getNoteMoney());//总数
+                        }
+                    }
+                    typeGroup.setCount(counts.toString());
+                    typeGroups.add(typeGroup);
+                }else {//为空，某项基础数据还没配置
+                    List<BaseConfig> baseConfigs1 = baseType.get(one);
+                    TypeGroup typeGroup=new TypeGroup();
+                    typeGroup.setName(baseConfigs1.get(0).getTypeLabel());
+                    typeGroup.setType(baseConfigs1.get(0).getTypeValue().toString());
+                    BigDecimal counts=new BigDecimal(0);
+                    typeGroup.setCount(counts.toString());
+                    typeGroups.add(typeGroup);
                 }
             }
-            for (int j = 0; j < list2.size(); j++) {
-                if(list2.get(j).getTimeStr().equals(lists.get(i))){
-                    sw=sw.add(list2.get(j).getNoteMoney());
-                }
-            }
-            for (int j = 0; j < list3.size(); j++) {
-                if(list3.get(j).getTimeStr().equals(lists.get(i))){
-                    zs=zs.add(list3.get(j).getNoteMoney());
-                }
-            }
-            for (int j = 0; j < list4.size(); j++) {
-                if(list4.get(j).getTimeStr().equals(lists.get(i))){
-                    lx=lx.add(list4.get(j).getNoteMoney());
-                }
-
-            }
-            tendencyNoteMap.setYfcount(yf+"");
-            tendencyNoteMap.setZscount(zs+"");
-            tendencyNoteMap.setLxcount(lx+"");
-            tendencyNoteMap.setSwcount(sw+"");
-            tendencyNoteMap.setTimeStr(lists.get(i));
-            list.add(tendencyNoteMap);
+            tendencyNoteMap.setLists(typeGroups);
+            result.add(tendencyNoteMap);
         }
         //排序、此处是正序
-        list=list.stream().sorted((s2,s1 )->s2.getTimeStr().compareTo(s1.getTimeStr())).collect(Collectors.toList());
-        return ResultUtils.getSuccessResult(list);
+        result = result.stream().sorted((s2, s1) -> s2.getTimeStr().compareTo(s1.getTimeStr())).collect(Collectors.toList());
+        return ResultUtils.getSuccessResult(result);
     }
 
     @Override
