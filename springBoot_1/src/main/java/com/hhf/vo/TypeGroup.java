@@ -12,4 +12,6 @@ public class TypeGroup {
     private String name;//名
 
     private String count;//钱
+
+    private String color;//颜色
 }

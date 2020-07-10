@@ -239,6 +239,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
                     TypeGroup typeGroup=new TypeGroup();
                     typeGroup.setName(baseType.get(one).get(0).getTypeLabel());
                     typeGroup.setType(one.toString());
+                    typeGroup.setColor(baseType.get(one).get(0).getColor());
                     BigDecimal counts=new BigDecimal(0);
                     for (int j = 0; j < typeNotes.size(); j++) {
                         if(typeNotes.get(j).getTimeStr().equals(lists.get(i))){
@@ -252,6 +253,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
                     TypeGroup typeGroup=new TypeGroup();
                     typeGroup.setName(baseConfigs1.get(0).getTypeLabel());
                     typeGroup.setType(baseConfigs1.get(0).getTypeValue().toString());
+                    typeGroup.setColor(baseConfigs1.get(0).getColor());
                     BigDecimal counts=new BigDecimal(0);
                     typeGroup.setCount(counts.toString());
                     typeGroups.add(typeGroup);

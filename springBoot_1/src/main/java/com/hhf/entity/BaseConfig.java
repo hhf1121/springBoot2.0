@@ -16,6 +16,8 @@ public class BaseConfig {
 
     private String configCode;
 
+    private String color;
+
     private String typeLabel;
 
     private Integer typeValue;

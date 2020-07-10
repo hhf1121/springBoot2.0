@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.hhf.entity.BaseConfig;
 import com.hhf.mapper.BaseConfigMapper;
 import com.hhf.service.IBaseConfigService;
@@ -13,9 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -40,6 +39,12 @@ public class BaseConfigService extends ServiceImpl<BaseConfigMapper,BaseConfig> 
         String configCode = baseConfigVo.getConfigCode();
         List<BaseConfig> lists = baseConfigVo.getLists();
         List<BaseConfig> config_codes = baseConfigMapper.selectList(new QueryWrapper<BaseConfig>().eq("config_code", configCode));
+        Set<String> colors=config_codes.stream().map(o->o.getColor()).collect(Collectors.toSet());
+        Set<String> input = lists.stream().map(o -> StringUtils.isEmpty(o.getColor())?".":o.getColor()).collect(Collectors.toSet());
+        Sets.SetView<String> intersection = Sets.intersection(colors, input);//交集
+        if(!intersection.isEmpty()){
+            return ResultUtils.getFailResult("历史数据已存在此颜色,请重新选择");
+        }
         //对比新旧list、做更新或新增
         List<Integer> typeValues=Lists.newArrayList();//新进来的数据
         for (BaseConfig list : lists) {

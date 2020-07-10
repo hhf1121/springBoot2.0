@@ -8,7 +8,6 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-
 @Mapper
 public interface BaseConfigMapper extends BaseMapper<BaseConfig> {
     int countByExample(BaseConfigExample example);
