@@ -1,5 +1,6 @@
 package com.hhf.controller;
 
+import com.alibaba.fastjson.JSONArray;
 import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
@@ -16,11 +17,13 @@ import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -62,6 +65,9 @@ public class UserController {
 
     @Autowired
     private AsynService asynService;//异步service
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     //测试mq
     @RequestMapping("mq/producer")
@@ -215,6 +221,28 @@ public class UserController {
         if(StringUtils.isEmpty(id))
             return null;
         return userService.getCurrentUserStr(Long.valueOf(id));
+    }
+
+
+    //校验当前用户是否已登录
+    @GetMapping("/currentIsLogin")
+    public Map<String,Object> currentIsLogin(HttpServletRequest request){
+        Cookie[] cookies = request.getCookies();
+        String token = "";
+        if(cookies!=null&&cookies.length>0){
+            for (Cookie cookie : cookies) {
+                if (org.apache.commons.lang3.StringUtils.equals(cookie.getName(),"myToken")) {
+                    token = cookie.getValue();
+                    break;
+                }
+            }
+        }
+        String s = stringRedisTemplate.opsForValue().get(token);
+        if(StringUtils.isEmpty(s)){
+            return ResultUtils.getFailResult("用户未登录");
+        }
+        User user = JSONArray.parseObject(s, User.class);
+        return ResultUtils.getSuccessResult(user);
     }
 
     //下线用户
