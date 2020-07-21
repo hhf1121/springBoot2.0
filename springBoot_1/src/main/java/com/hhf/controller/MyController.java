@@ -10,6 +10,7 @@ import org.hibernate.annotations.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -25,6 +26,7 @@ import org.springframework.web.client.RestTemplate;
 @EnableAutoConfiguration
 @RestController
 @RequestMapping("/my")
+@RefreshScope//获取nacos的新配置
 public class MyController {
 
 	//使用dubbo调用
