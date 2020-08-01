@@ -222,7 +222,7 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         Map<Integer, List<UserNote>> groups = userNotes.stream().collect(Collectors.groupingBy(UserNote::getNoteType));
         //查字典里，config_code总共有多少种
         QueryWrapper<BaseConfig> queryConfig=new QueryWrapper<>();
-        queryConfig.select("type_value","type_label");
+        queryConfig.select("type_value","type_label","color");
         queryConfig.eq("config_code","cost_type");
         List<BaseConfig> baseConfigs = baseConfigService.list(queryConfig);
         Map<Integer, List<BaseConfig>> baseType = baseConfigs.stream().collect(Collectors.groupingBy(BaseConfig::getTypeValue));
