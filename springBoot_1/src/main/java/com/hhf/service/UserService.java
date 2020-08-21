@@ -5,15 +5,6 @@ package com.hhf.service;
  * SpringBoot2.0整合pagehelper
  */
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -29,16 +20,17 @@ import com.google.common.collect.Sets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
 import com.hhf.entity.BaseMsg;
+import com.hhf.entity.User;
 import com.hhf.entity.UserNote;
 import com.hhf.mapper.CommonMapper;
+import com.hhf.mapper.UserMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.service.impl.UserNoteService;
-import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -54,14 +46,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-//import com.github.pagehelper.PageHelper;
-//import com.github.pagehelper.PageInfo;
-import com.hhf.entity.User;
-import com.hhf.mapper.UserMapper;
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.StopWatch;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
@@ -71,7 +55,17 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.Session;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+//import com.github.pagehelper.PageHelper;
+//import com.github.pagehelper.PageInfo;
 
 @Slf4j
 @Service
@@ -92,8 +86,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
-	@Autowired
-	private WebSocketServer webSocketServer;
 
 	public static List<User> cacheUser=Lists.newArrayList();
 
