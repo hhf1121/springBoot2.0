@@ -326,7 +326,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		//1.MP插件
 		QueryWrapper<User> wrapper=new QueryWrapper<>();
 		if(user.getYes()!=null) wrapper.eq("yes",user.getYes());
-		if(user.getCreateDate()!=null) wrapper.eq("createDate",user.getCreateDate());
+		if(user.getCreateDate()!=null) wrapper.ge("createDate",user.getCreateDate()).le("createDate",new Date(user.getCreateDate().getTime()+24*3600*1000-1));
 		IPage<User> page=new Page(user.getPageIndex(),user.getPageSize());
 		IPage<User> iPage = userMapper.selectPage(page, wrapper);
 		List<User> records = iPage.getRecords();
