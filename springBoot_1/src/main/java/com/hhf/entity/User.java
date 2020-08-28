@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.annotation.TableLogic;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.util.Date;
 
@@ -43,6 +44,8 @@ public class User {
 
     private Integer yes;
 
+    //以此格式来接收前端传入的时间
+    @DateTimeFormat(pattern = "yyyy-MM-dd")
     @TableField("createDate")
     private Date createDate;
 
