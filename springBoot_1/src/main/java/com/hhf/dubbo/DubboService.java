@@ -2,12 +2,12 @@ package com.hhf.dubbo;
 
 import java.util.Map;
 
-import com.hhf.api.IDubboService;
+//import com.hhf.api.IDubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.alibaba.dubbo.config.annotation.Reference;
+//import com.alibaba.dubbo.config.annotation.Reference;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.RestTemplate;
@@ -19,13 +19,14 @@ public class DubboService{
 	@Autowired
 	private RestTemplate restTemplate;
 
-	@Reference(version="1.0.0")
-	private IDubboService dubboService;
+//	@Reference(version="1.0.0")
+//	private IDubboService dubboService;
 
 
 	public Map<String,Object> dubboData(Integer yes) {
 		log.info("----------dubboData-----------");
-		return  dubboService.getRPCData(yes);
+//		return  dubboService.getRPCData(yes);
+		return null;
 	}
 
 	public Map<String, Object> ribbon(Integer yes){

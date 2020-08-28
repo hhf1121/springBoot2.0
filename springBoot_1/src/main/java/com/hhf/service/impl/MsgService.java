@@ -13,10 +13,13 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
+import com.hhf.feignClient.FeignHttpServer;
+import com.hhf.feignClient.PortalAgencyCenterDto;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.service.IMsgService;
 import com.hhf.service.UserService;
 import com.hhf.utils.CurrentUserContext;
+import com.hhf.utils.HttpClientUtils;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
 import com.hhf.vo.RegisterMQVo;
@@ -37,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
@@ -238,6 +242,9 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
         return  ResultUtils.getFailResult("删除失败");
     }
 
+    @Autowired
+    private FeignHttpServer feignHttpServer;
+
     @Override
     public Map<String, Object> sendMsg(BaseMsg baseMsg, HttpServletRequest request) {
         //MQVo
@@ -251,6 +258,25 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             SendResult result = producer.send(message);
             //保存作为发件方的消息记录
             int i = baseMsgMapper.insertSelective(baseMsg);
+            //推送给mh系统（调接口）
+            try {
+                PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
+                dto.setAccessKey("");
+                dto.setAcceptanceType(1);
+                dto.setSourceCode("");
+                dto.setSourceSign("");//待办唯一码,根据此字段更新状态
+                dto.setAgentCodes(Lists.newArrayList("050069wode"));
+                dto.setAgencyTitle(baseMsg.getMsg());
+                dto.setAgencyType("");
+                dto.setAgencyCategory("");
+                dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
+                dto.setAcceptanceTime(new Date());
+                Map<String, Object> map = feignHttpServer.sendAgency(dto);
+                System.out.println(map);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             if(i<1){
                 return ResultUtils.getFailResult("消息保存失败");
             }

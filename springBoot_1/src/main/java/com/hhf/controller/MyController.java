@@ -1,12 +1,6 @@
 package com.hhf.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import com.hhf.api.providerApi;
-import com.hhf.dubbo.DubboService;
 import com.hhf.service.IMyService;
-import org.hibernate.annotations.Any;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -16,6 +10,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.HashMap;
+import java.util.Map;
+
+//import com.hhf.api.providerApi;
+import com.hhf.dubbo.DubboService;
 
 /**
  * 启动方式2:单独写app
@@ -34,8 +34,8 @@ public class MyController {
 	private DubboService dubboService;
 
 	//使用feign客户端调用
-	@Autowired
-	private providerApi providerapi;
+//	@Autowired
+//	private providerApi providerapi;
 
 	//使用template调用
     @Autowired
@@ -80,17 +80,25 @@ public class MyController {
 //	ribbon客户端调用
 	@GetMapping("nacos/ribbon")
 	public  Map<String, Object> ribbon(Integer yes){
-		return dubboService.ribbon(yes);
+//		return dubboService.ribbon(yes);
+		return null;
 	}
 //  feign调用
 	@GetMapping("nacos/feign")
 	public  Map<String, Object> feign(Integer yes){
-		return providerapi.getDataByFeign(yes);
+//		return providerapi.getDataByFeign(yes);
+		return null;
 	}
 
 	@GetMapping("isTranaction")
     public Map<String,Object> isTranaction(Long id){
 	    return myService.isTranaction(id);
     }
+
+	@RequestMapping("dubbo/dubboData")
+	public Map<String, Object> getDataByDubbo(Integer yes) {
+        return dubboService.dubboData(yes);
+//		return null;
+	}
 
 }

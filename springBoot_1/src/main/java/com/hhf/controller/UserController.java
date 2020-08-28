@@ -1,7 +1,6 @@
 package com.hhf.controller;
 
 import com.alibaba.fastjson.JSONArray;
-import com.hhf.dubbo.DubboService;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
 import com.hhf.entity.User;
@@ -11,7 +10,6 @@ import com.hhf.service.JDBCService;
 import com.hhf.service.ProductService;
 import com.hhf.service.UserService;
 import com.hhf.utils.ResultUtils;
-import com.hhf.utils.VerifyCodeImgUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -22,14 +20,11 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -60,8 +55,6 @@ public class UserController {
     @Autowired
     private MQProducer mqProducer;//mqService
 
-    @Autowired
-    private DubboService dubboService;//dubboService
 
     @Autowired
     private AsynService asynService;//异步service
@@ -85,11 +78,6 @@ public class UserController {
         } catch (MQBrokerException e) {
             return ResultUtils.getFailResult(e.getMessage());
         }
-    }
-
-    @RequestMapping("dubbo/dubboData")
-    public Map<String, Object> getDataByDubbo(Integer yes) {
-        return dubboService.dubboData(yes);
     }
 
     @RequestMapping("asyn/addObject")
