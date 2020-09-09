@@ -1,21 +1,27 @@
 package com.hhf.controller;
 
+import com.google.common.collect.Lists;
+import com.hhf.dubbo.DubboService;
+import com.hhf.feignClient.FeignHttpServer;
+import com.hhf.feignClient.PortalAgencyCenterDto;
 import com.hhf.service.IMyService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 //import com.hhf.api.providerApi;
-import com.hhf.dubbo.DubboService;
 
 /**
  * 启动方式2:单独写app
@@ -27,6 +33,7 @@ import com.hhf.dubbo.DubboService;
 @RestController
 @RequestMapping("/my")
 @RefreshScope//获取nacos的新配置
+@Slf4j
 public class MyController {
 
 	//使用dubbo调用
@@ -100,5 +107,41 @@ public class MyController {
         return dubboService.dubboData(yes);
 //		return null;
 	}
+
+	@Autowired
+	private FeignHttpServer feignHttpServer;
+
+	@Autowired
+	private StringRedisTemplate redisTemplate;
+
+
+	@GetMapping("feign/url")
+	public void getUrlType() {
+		try {
+			PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
+			dto.setAccessKey("1ZvivWa6I0I2i80GeqKRTc65Eptpg39M");
+			dto.setAcceptanceType(1);
+			dto.setSourceCode("HHF");
+			dto.setSourceType("1");
+			dto.setSourceSign("WEIYIBIANMA"+redisTemplate.opsForValue().increment("HHF"));//待办唯一码,根据此字段更新状态
+			dto.setAgentCodes(Lists.newArrayList("050069wode"));
+			dto.setAgencyTitle("待办标题");
+			dto.setAgencyType("1");//大类
+			dto.setAgencyCategory("测试类代办");//小类
+			dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
+			dto.setAcceptanceTime(new Date());
+			Map<String, Object> map = feignHttpServer.sendAgency(dto);
+			log.info(map.toString());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@GetMapping("feign/nacos")
+	public Map<String, Object> getUrlType(Integer yes) {
+		return feignHttpServer.getDataByFeign(yes);
+	}
+
+
 
 }
