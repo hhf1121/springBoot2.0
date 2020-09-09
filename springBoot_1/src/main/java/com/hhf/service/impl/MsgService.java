@@ -261,18 +261,19 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             //推送给mh系统（调接口）
             try {
                 PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
-                dto.setAccessKey("");
+                dto.setAccessKey("1ZvivWa6I0I2i80GeqKRTc65Eptpg39M");
                 dto.setAcceptanceType(1);
-                dto.setSourceCode("");
-                dto.setSourceSign("");//待办唯一码,根据此字段更新状态
+                dto.setSourceCode("HHF");
+                dto.setSourceType("1");
+                dto.setSourceSign("WEIYIBIANMA"+redisTemplate.opsForValue().increment("HHF"));//待办唯一码,根据此字段更新状态
                 dto.setAgentCodes(Lists.newArrayList("050069wode"));
                 dto.setAgencyTitle(baseMsg.getMsg());
-                dto.setAgencyType("");
-                dto.setAgencyCategory("");
+                dto.setAgencyType("1");//大类
+                dto.setAgencyCategory("测试类代办");//小类
                 dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
                 dto.setAcceptanceTime(new Date());
                 Map<String, Object> map = feignHttpServer.sendAgency(dto);
-                System.out.println(map);
+                log.info(map.toString());
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -3,17 +3,13 @@ package com.hhf.feignClient;
 import feign.Param;
 import feign.RequestLine;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.persistence.criteria.CriteriaBuilder;
 import java.util.Map;
 
 //如果有url，走url。
 //如果没有url，走微服务名（被调用服务需注册到注册中心）
 //@RequestLine可使用url的方式。@RequestMapping使用微服务的方式
-@FeignClient(value = "provider-service",url = "http://192.168.202.53:9080/")
+@FeignClient(value = "provider-service"/*,url = "http://192.168.202.53:8182/"*/)
 public interface FeignHttpServer {
 
     @RequestLine("POST /portalApi/agencyCenter/saveAgency")
