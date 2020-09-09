@@ -45,7 +45,7 @@ public class User {
     private Integer yes;
 
     //以此格式来接收前端传入的时间
-    @DateTimeFormat(pattern = "yyyy-MM-dd")
+    @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField("createDate")
     private Date createDate;
 
