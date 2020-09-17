@@ -119,15 +119,15 @@ public class MyController {
 	public void getUrlType() {
 		try {
 			PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
-			dto.setAccessKey("1ZvivWa6I0I2i80GeqKRTc65Eptpg39M");
+			dto.setAccessKey("eOzAt3041Sbb9n3EjcNPS76evt3H7p1s");
 			dto.setAcceptanceType(1);
-			dto.setSourceCode("HHF");
-			dto.setSourceType("1");
+			dto.setSourceCode("UFE");
+			dto.setSourceType("uce");
 			dto.setSourceSign("WEIYIBIANMA"+redisTemplate.opsForValue().increment("HHF"));//待办唯一码,根据此字段更新状态
-			dto.setAgentCodes(Lists.newArrayList("050069wode"));
-			dto.setAgencyTitle("待办标题");
+			dto.setAgentCodes(Lists.newArrayList("050069"));
+			dto.setAgencyTitle("UFE待办标题"+redisTemplate.opsForValue().increment("HHF"));
 			dto.setAgencyType("1");//大类
-			dto.setAgencyCategory("测试类代办");//小类
+			dto.setAgencyCategory("测试接收时间");//小类
 			dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
 			dto.setAcceptanceTime(new Date());
 			Map<String, Object> map = feignHttpServer.sendAgency(dto);

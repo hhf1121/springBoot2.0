@@ -19,7 +19,6 @@ import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.service.IMsgService;
 import com.hhf.service.UserService;
 import com.hhf.utils.CurrentUserContext;
-import com.hhf.utils.HttpClientUtils;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
 import com.hhf.vo.RegisterMQVo;
