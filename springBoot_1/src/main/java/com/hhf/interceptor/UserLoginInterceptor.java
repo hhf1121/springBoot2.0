@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -37,9 +38,13 @@ public class UserLoginInterceptor implements HandlerInterceptor {
     @Autowired
     CurrentUserContext currentUserContext;
 
+    @Value("${server.port}")
+    private String port;
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response,
                              Object handler)throws Exception {
+        log.info("当前服务器ip："+port);
         Cookie[] cookies = request.getCookies();
         String token = "";
         if(cookies!=null&&cookies.length>0){

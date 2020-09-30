@@ -258,24 +258,24 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             //保存作为发件方的消息记录
             int i = baseMsgMapper.insertSelective(baseMsg);
             //推送给mh系统（调接口）
-            try {
-                PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
-                dto.setAccessKey("1ZvivWa6I0I2i80GeqKRTc65Eptpg39M");
-                dto.setAcceptanceType(1);
-                dto.setSourceCode("HHF");
-                dto.setSourceType("1");
-                dto.setSourceSign("WEIYIBIANMA"+redisTemplate.opsForValue().increment("HHF"));//待办唯一码,根据此字段更新状态
-                dto.setAgentCodes(Lists.newArrayList("050069wode"));
-                dto.setAgencyTitle(baseMsg.getMsg());
-                dto.setAgencyType("1");//大类
-                dto.setAgencyCategory("测试类代办");//小类
-                dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
-                dto.setAcceptanceTime(new Date());
-                Map<String, Object> map = feignHttpServer.sendAgency(dto);
-                log.info(map.toString());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+//            try {
+//                PortalAgencyCenterDto dto=new PortalAgencyCenterDto();
+//                dto.setAccessKey("1ZvivWa6I0I2i80GeqKRTc65Eptpg39M");
+//                dto.setAcceptanceType(1);
+//                dto.setSourceCode("HHF");
+//                dto.setSourceType("1");
+//                dto.setSourceSign("WEIYIBIANMA"+redisTemplate.opsForValue().increment("HHF"));//待办唯一码,根据此字段更新状态
+//                dto.setAgentCodes(Lists.newArrayList("050069wode"));
+//                dto.setAgencyTitle(baseMsg.getMsg());
+//                dto.setAgencyType("1");//大类
+//                dto.setAgencyCategory("测试类代办");//小类
+//                dto.setCallbackUrl("http://192.168.202.53:8081/#/ChinaMap/about");
+//                dto.setAcceptanceTime(new Date());
+//                Map<String, Object> map = feignHttpServer.sendAgency(dto);
+//                log.info(map.toString());
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
 
             if(i<1){
                 return ResultUtils.getFailResult("消息保存失败");

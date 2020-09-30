@@ -18,15 +18,15 @@ public class MyInterceptors  implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry){
         //添加对用户是否登录的拦截器，并添加过滤项、排除项
-//		registry.addInterceptor(userLoginInterceptor)
-//				.excludePathPatterns("/css/**","/js/**","/images/**")//排除样式、脚本、图片等资源文件
-//				.excludePathPatterns("/springBoot/vue/queryByVue")//排除登录页面
-//				.excludePathPatterns("/springBoot/verifyCode")//排除验证码
-//				.excludePathPatterns("/base/getSelectDistrictByLevel")//注册账号-选择地址
-//				.excludePathPatterns("/springBoot/registerUser")//注册账号-用户新增
-//				.excludePathPatterns("/springBoot/vue/loadingFile")//注册账号-用户头像
-//				.excludePathPatterns("/springBoot/checkUserName")//注册账号-用户账号
-//				.excludePathPatterns("*/msgWebSocket/*");//webSocket长连接
+		registry.addInterceptor(userLoginInterceptor)
+				.excludePathPatterns("/css/**","/js/**","/images/**")//排除样式、脚本、图片等资源文件
+				.excludePathPatterns("/springBoot/vue/queryByVue")//排除登录页面
+				.excludePathPatterns("/springBoot/verifyCode")//排除验证码
+				.excludePathPatterns("/base/getSelectDistrictByLevel")//注册账号-选择地址
+				.excludePathPatterns("/springBoot/registerUser")//注册账号-用户新增
+				.excludePathPatterns("/springBoot/vue/loadingFile")//注册账号-用户头像
+				.excludePathPatterns("/springBoot/checkUserName")//注册账号-用户账号
+				.excludePathPatterns("*/msgWebSocket/*");//webSocket长连接
     }
 
     @Override
