@@ -5,7 +5,9 @@ import com.hhf.dubbo.DubboService;
 import com.hhf.feignClient.FeignHttpServer;
 import com.hhf.feignClient.PortalAgencyCenterDto;
 import com.hhf.service.IMyService;
+import com.hhf.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -20,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 //import com.hhf.api.providerApi;
 
@@ -140,6 +143,22 @@ public class MyController {
 	@GetMapping("feign/nacos")
 	public Map<String, Object> getUrlType(Integer yes) {
 		return feignHttpServer.getDataByFeign(yes);
+	}
+
+	//手动获取以??为前缀的key
+	@GetMapping("/getPreByRedis")
+	public Map<String,Object> getPreByRedis(String pre,String delete){
+		//批量获取key
+		Set<String> keys = redisTemplate.keys(pre+"*");
+		if(StringUtils.equals(delete,"delete")){
+			for (String key : keys) {
+				Long redisKey = redisTemplate.opsForValue().getOperations().getExpire(key);
+				if (redisKey>12*3600*1000||redisKey==-1) {//大于12个小时或者不失效
+					redisTemplate.delete(key);
+				}
+			}
+		}
+		return ResultUtils.getSuccessResult(keys);
 	}
 
 
