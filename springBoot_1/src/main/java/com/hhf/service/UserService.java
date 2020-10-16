@@ -694,10 +694,11 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 			}else {
 				break;
 			}
+			//是否在线
 			if(sessionPool.get(user.getId()+"")!=null){
-				user.setValue(user.getValue()+"(在线)");
+				user.setIsOnLine("[在线]");
 			}else {
-				user.setValue(user.getValue()+"(离线)");
+				user.setIsOnLine("[离线]");
 			}
 		}
 		List<User> collect = users.stream().filter(o -> !o.getUserName().equals(currentUser.getUserName())).collect(Collectors.toList());

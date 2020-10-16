@@ -68,4 +68,7 @@ public class User {
     @TableField(exist = false)
     private String value;
 
+    @TableField(exist = false)
+    private String isOnLine;
+
 }
