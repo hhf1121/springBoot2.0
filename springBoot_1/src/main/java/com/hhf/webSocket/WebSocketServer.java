@@ -29,7 +29,7 @@ public class WebSocketServer {
     private Session session;
 
     private static CopyOnWriteArraySet<WebSocketServer> webSockets =new CopyOnWriteArraySet<>();
-    private static Map<String,Session> sessionPool = new HashMap<String,Session>();
+    public static Map<String,Session> sessionPool = new HashMap<String,Session>();
 
 
     @OnOpen
@@ -48,6 +48,7 @@ public class WebSocketServer {
     @OnClose
     public void onClose() {
         webSockets.remove(this);
+
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
 

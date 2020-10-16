@@ -27,9 +27,11 @@ import com.hhf.mapper.UserMapper;
 import com.hhf.mapper.UserNoteMapper;
 import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.service.impl.UserNoteService;
+import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.RegisterMQVo;
+import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -38,6 +40,7 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingException;
+import org.checkerframework.checker.units.qual.A;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
@@ -55,6 +58,7 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.websocket.Session;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -63,6 +67,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 //import com.github.pagehelper.PageHelper;
 //import com.github.pagehelper.PageInfo;
@@ -86,6 +91,8 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
+	@Autowired
+	private WebSocketServer webSocketServer;
 
 	public static List<User> cacheUser=Lists.newArrayList();
 
@@ -310,10 +317,11 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		Cookie cookie=new Cookie("myToken",token);
 		cookie.setPath("/");
 		httpServletResponse.addCookie(cookie);
-		if(user.getYes()==3){
-			//监听mq
-			registerConsumer.messageListener();
-		}
+//		if(user.getYes()==3){
+//			//监听mq
+			//项目启动的时候，就启动
+//			registerConsumer.messageListener();
+//		}
 		return user;
 	}
 
@@ -523,8 +531,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				break;
 			}
 		}
+		//webSocket移除用户
+		webSocketServer.sessionPool.remove(CurrentUserContext.getCurrentUser().getId()+"");
 		//管理员关掉mq服务
-		if(user!=null&&user.getId()==1) registerConsumer.stopListener();
+//		if(user!=null&&user.getId()==1) registerConsumer.stopListener();
 	}
 
 	public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {
@@ -661,5 +671,36 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 			return ResultUtils.getFailResult("发送失败");
 		}
 		return ResultUtils.getSuccessResult("发送成功");
+	}
+
+	public Map<String, Object> queryVip() {
+		Map<String, Session> sessionPool = webSocketServer.sessionPool;
+		User currentUser = CurrentUserContext.getCurrentUser();
+		Integer yes = currentUser.getYes();
+		if(yes==1){
+			return ResultUtils.getSuccessResult(Lists.newArrayList());
+		}
+		QueryWrapper<User> queryWrapper=new QueryWrapper<>();
+		queryWrapper.ne("yes",1).le("isDelete",0);
+		List<User> users = userMapper.selectList(queryWrapper);
+		for (User user : users) {
+			user.setPicPath("");
+			user.setPhotoData(null);
+			if(yes==3){
+				user.setValue(user.getName()+"("+user.getUserName()+"-"+user.getPassWord()+")");
+			}else if(yes==2){
+				user.setPassWord("");
+				user.setValue(user.getName()+"("+user.getUserName()+")");
+			}else {
+				break;
+			}
+			if(sessionPool.get(user.getId()+"")!=null){
+				user.setValue(user.getValue()+"(在线)");
+			}else {
+				user.setValue(user.getValue()+"(离线)");
+			}
+		}
+		List<User> collect = users.stream().filter(o -> !o.getUserName().equals(currentUser.getUserName())).collect(Collectors.toList());
+		return ResultUtils.getSuccessResult(collect);
 	}
 }

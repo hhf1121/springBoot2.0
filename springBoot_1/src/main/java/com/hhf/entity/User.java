@@ -65,5 +65,7 @@ public class User {
     @TableField(exist = false)
     private String cachePhoto;
 
+    @TableField(exist = false)
+    private String value;
 
 }

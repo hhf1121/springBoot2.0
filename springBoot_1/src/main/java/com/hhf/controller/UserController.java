@@ -311,4 +311,10 @@ public class UserController {
     }
 
 
+    //注册-给管理员发信息
+    @GetMapping(value = "queryVip")
+    public Map<String, Object> queryVip() {
+        return userService.queryVip();
+    }
+
 }
