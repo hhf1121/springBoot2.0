@@ -48,7 +48,8 @@ public class WebSocketServer {
     @OnClose
     public void onClose() {
         webSockets.remove(this);
-
+        //webSocket移除用户
+        sessionPool.remove(this.session.getPathParameters().get("userId"));
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
 

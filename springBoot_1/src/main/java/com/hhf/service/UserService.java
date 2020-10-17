@@ -531,8 +531,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				break;
 			}
 		}
-		//webSocket移除用户
-		webSocketServer.sessionPool.remove(CurrentUserContext.getCurrentUser().getId()+"");
 		//管理员关掉mq服务
 //		if(user!=null&&user.getId()==1) registerConsumer.stopListener();
 	}
