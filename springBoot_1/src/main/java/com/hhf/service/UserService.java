@@ -30,6 +30,7 @@ import com.hhf.service.impl.UserNoteService;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
+import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
 import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
@@ -287,7 +288,22 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	public int updateDataByVue(User user) {
 	    QueryWrapper<User> wrapper=new QueryWrapper<>();
 	    wrapper.eq("id",user.getId());
-		return userMapper.update(user,wrapper);
+        int update = userMapper.update(user, wrapper);
+        //用户更新成功、通知mq。再自我消费。
+        //MQVo
+        NotificationUserMQVo vo=new NotificationUserMQVo();
+        vo.setType("updateUser");
+        vo.setUserIds(Lists.newArrayList());
+        Object jsonObj=JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
+        try {
+            Message message = new Message("noticeTopic", "noticeTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
+            SendResult result = producer.send(message);
+            log.info("MQ发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return -1;
+        }
+        return update;
 	}
 
 	public User queryByVue(String userName, String passWord, String verifyCode, HttpServletResponse httpServletResponse, HttpServletRequest request) throws IOException {

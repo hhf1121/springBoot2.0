@@ -1,9 +1,8 @@
 package com.hhf.webSocket;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArraySet;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
 
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
@@ -11,9 +10,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Component;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 @Component
@@ -29,7 +28,8 @@ public class WebSocketServer {
     private Session session;
 
     private static CopyOnWriteArraySet<WebSocketServer> webSockets =new CopyOnWriteArraySet<>();
-    public static Map<String,Session> sessionPool = new HashMap<String,Session>();
+
+    public static Map<String,Session> sessionPool = new ConcurrentHashMap<String,Session>();
 
 
     @OnOpen
@@ -50,6 +50,7 @@ public class WebSocketServer {
         webSockets.remove(this);
         //webSocket移除用户
         sessionPool.remove(this.session.getPathParameters().get("userId"));
+        sendAllMessage("downOrUp");//下线的时候，让所有用户都刷新
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
 
@@ -75,6 +76,7 @@ public class WebSocketServer {
          log.info("【websocket消息】单点消息:"+message);
         Session session = sessionPool.get(userId);
         if (session != null) {
+            log.info("存在userId:"+userId+"session:"+session);
             try {
                 session.getAsyncRemote().sendText(message);
             } catch (Exception e) {
