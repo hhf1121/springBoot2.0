@@ -21,6 +21,7 @@ import com.hhf.service.UserService;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
+import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
 import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
@@ -324,4 +325,24 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
     public int insertEntity(BaseMsg baseMsg) {
         return baseMsgMapper.insertSelective(baseMsg);
     }
+
+    @Override
+    public Map<String, Object> sendAllMsg(String msg) {
+        NotificationUserMQVo vo=new NotificationUserMQVo();
+        vo.setType("allUserMsg");
+        vo.setUserIds(Lists.newArrayList());
+        vo.setMsg(msg);
+        Object jsonObj= JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
+        try {
+            Message message = new Message("noticeTopic", "noticeTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
+            SendResult result = producer.send(message);
+            log.info("MQ发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return ResultUtils.getFailResult("发送失败");
+        }
+        return ResultUtils.getSuccessResult("发送成功");
+    }
+
+
 }

@@ -17,5 +17,8 @@ public class NotificationUserMQVo {
     //通知类型
     private String type;
 
+    //通知的消息
+    private String msg;
+
 
 }

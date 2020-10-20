@@ -7,12 +7,18 @@ import com.hhf.service.IMsgService;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
 import com.hhf.webSocket.WebSocketServer;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.rocketmq.client.exception.MQClientException;
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("msg")
 public class MsgController {
@@ -22,6 +28,27 @@ public class MsgController {
 
     @Autowired
     private WebSocketServer webSocketServer;
+
+    @Value("${apache.rocketmq.namesrvAddr}")
+    private String namesrvAddr;
+
+    //生产者的组名
+    DefaultMQProducer producer= null;
+
+    @PostConstruct
+    public void getMQ(){
+        producer=new DefaultMQProducer("msgProducer");
+        //指定NameServer地址，多个地址以 ; 隔开
+        producer.setNamesrvAddr(namesrvAddr);
+        try {
+            producer.start();
+            log.info("mq启动成功...");
+        } catch (MQClientException e) {
+            log.info(e.getMessage());
+            log.info("mq启动失败...");
+        }
+    }
+
 
     @PostMapping("/getMsg")
     public IPage<BaseMsg> getMsg(@RequestBody BaseMsg baseMsg){
@@ -69,10 +96,9 @@ public class MsgController {
      * @param msg
      * @return
      */
-    @PostMapping("/sendAllWebSocket")
+    @GetMapping("/sendAllWebSocket")
     public Map<String,Object> sendAllWebSocket(String msg) {
-        webSocketServer.sendAllMessage(msg);
-        return ResultUtils.getSuccessResult("发送成功");
+        return msgService.sendAllMsg(msg);
     }
 
     @PostMapping("/sendOneWebSocket")

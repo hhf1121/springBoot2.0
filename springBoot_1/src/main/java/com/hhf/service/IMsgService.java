@@ -22,4 +22,6 @@ public interface IMsgService extends IService<BaseMsg> {
     int saveOrUpdateMsgRedis(BaseMsg baseMsg);
 
     int insertEntity(BaseMsg baseMsg);
+
+    Map<String, Object> sendAllMsg(String msg);
 }

@@ -22,6 +22,7 @@ import com.google.common.hash.Funnels;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
 import com.hhf.entity.UserNote;
+import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserMapper;
 import com.hhf.mapper.UserNoteMapper;
@@ -79,6 +80,9 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	
 	@Autowired
 	private UserMapper userMapper;
+
+	@Autowired
+	private BaseMsgMapper baseMsgMapper;
 
 	@Autowired
 	StringRedisTemplate stringRedisTemplate;
@@ -289,11 +293,19 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	    QueryWrapper<User> wrapper=new QueryWrapper<>();
 	    wrapper.eq("id",user.getId());
         int update = userMapper.update(user, wrapper);
-        //用户更新成功、通知mq。再自我消费。
+		//用户更新成功、通知mq。再自我消费。通知发消息给当前用户、但未读的
         //MQVo
-        NotificationUserMQVo vo=new NotificationUserMQVo();
-        vo.setType("updateUser");
-        vo.setUserIds(Lists.newArrayList());
+		QueryWrapper<BaseMsg> baseMsgQueryWrapper=new QueryWrapper<>();
+		baseMsgQueryWrapper.select("from_id").le("to_id",user.getId()).le("status",0);
+		List<BaseMsg> baseMsgs = baseMsgMapper.selectList(baseMsgQueryWrapper);
+		NotificationUserMQVo vo=new NotificationUserMQVo();
+        vo.setType("noticeMsgUser");
+		List<Integer> collect = baseMsgs.stream().map(BaseMsg::getFromId).collect(Collectors.toList());
+		List<String> lists=Lists.newArrayList();
+		for (Integer integer : collect) {
+			lists.add(integer+"");
+		}
+		vo.setUserIds(lists);
         Object jsonObj=JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
         try {
             Message message = new Message("noticeTopic", "noticeTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
@@ -718,4 +730,5 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		List<User> collect = users.stream().filter(o -> !o.getUserName().equals(currentUser.getUserName())).collect(Collectors.toList());
 		return ResultUtils.getSuccessResult(collect);
 	}
+
 }

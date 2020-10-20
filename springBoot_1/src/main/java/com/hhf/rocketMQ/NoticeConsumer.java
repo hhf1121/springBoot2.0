@@ -71,12 +71,12 @@ public class NoticeConsumer implements CommandLineRunner {
                         log.info(getClass().getName()+"接收到了消息："+info);
                         NotificationUserMQVo vo = JSONArray.parseObject(info, NotificationUserMQVo.class);
                         List<String> userIds = vo.getUserIds();
-                        if(userIds.isEmpty()){//发给所有在线用户
-                            webSocketServer.sendAllMessage(vo.getType());
-                        }else {
+                        if(!userIds.isEmpty()){//发给所有在线用户
                             for (String userId : userIds) {
                                 webSocketServer.sendOneMessage(userId,vo.getType());
                             }
+                        }else {
+                            webSocketServer.sendAllMessage(vo.getMsg());
                         }
                         log.info("消息发送到websocket成功...");
                     } catch (UnsupportedEncodingException e) {
