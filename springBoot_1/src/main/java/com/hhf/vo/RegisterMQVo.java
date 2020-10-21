@@ -10,4 +10,6 @@ public class RegisterMQVo {
     private String toId;
 
     private String msg;
+
+    private String count;
 }

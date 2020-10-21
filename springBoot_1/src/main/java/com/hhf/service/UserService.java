@@ -33,7 +33,6 @@ import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
@@ -42,7 +41,6 @@ import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 import org.apache.rocketmq.remoting.exception.RemotingException;
-import org.checkerframework.checker.units.qual.A;
 import org.redisson.Redisson;
 import org.redisson.api.RLock;
 import org.springframework.beans.factory.InitializingBean;
@@ -60,7 +58,6 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.websocket.Session;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -96,8 +93,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
-	@Autowired
-	private WebSocketServer webSocketServer;
 
 	public static List<User> cacheUser=Lists.newArrayList();
 
@@ -700,7 +695,6 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	}
 
 	public Map<String, Object> queryVip() {
-		Map<String, Session> sessionPool = webSocketServer.sessionPool;
 		User currentUser = CurrentUserContext.getCurrentUser();
 		Integer yes = currentUser.getYes();
 		if(yes==1){
@@ -721,7 +715,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 				break;
 			}
 			//是否在线
-			if(sessionPool.get(user.getId()+"")!=null){
+			if(stringRedisTemplate.opsForValue().get("ws_online:"+user.getId()+"")!=null){
 				user.setIsOnLine("[在线]");
 			}else {
 				user.setIsOnLine("[离线]");

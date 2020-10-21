@@ -20,6 +20,7 @@ import com.hhf.service.IMsgService;
 import com.hhf.service.UserService;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.ResultUtils;
+import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.MsgVo;
 import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
@@ -68,6 +69,8 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
 
     @Autowired
     private WebSocketServer webSocketServer;
+
+    private SnowflakeIdWorker idWorker = new SnowflakeIdWorker(0, 0);
 
     @PostConstruct
     public void getMQ(){
@@ -227,8 +230,13 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
                     deleteMsg.setToId(msg.getToId());
                     deleteMsg.setMsg(msg.getMsg());
                     deleteMsg.setLastTime(msg.getLastTime());
+                    deleteMsg.setUserName(msg.getUserName());
                     deleteMsg.setSign(msg.getSign());
                     Object jsonObj= JSON.toJSONString(deleteMsg, SerializerFeature.WriteMapNullValue);
+//                    List<String> range = redisTemplate.opsForList().range("Msg_userId:" + currentUser.getId(), 0, -1);
+//                    range.forEach(o->{
+//                        System.out.println(o);
+//                    });
                     deleteCount += redisTemplate.opsForList().remove("Msg_userId:"+currentUser.getId(), 0, jsonObj.toString());
                 }
                 Long size = redisTemplate.opsForList().size("Msg_userId:" + currentUser.getId());
@@ -252,6 +260,34 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
         vo.setFromId(baseMsg.getFromId()+"");
         vo.setMsg(baseMsg.getMsg());
         vo.setToId(baseMsg.getToId()+"");
+        //存入redis(更新redis)  改为list存储
+        long countSize=redisTemplate.opsForList().size("Msg_userId:"+vo.getToId());
+        if(countSize>0L){
+            BaseMsg baseMsg1 = new BaseMsg();
+            baseMsg1.setFromId(Integer.parseInt(vo.getFromId()));
+            baseMsg1.setToId(Integer.parseInt(vo.getToId()));
+            baseMsg1.setMsg(vo.getMsg());
+            String time = new Date().getTime()+"";
+            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+            baseMsg.setLastTime(new Date(now));
+            baseMsg.setSign(idWorker.nextId()+"");
+            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
+            redisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+            countSize=countSize+1;
+        }else{
+            BaseMsg baseMsg1 = new BaseMsg();
+            baseMsg1.setFromId(Integer.parseInt(vo.getFromId()));
+            baseMsg1.setToId(Integer.parseInt(vo.getToId()));
+            baseMsg1.setMsg(vo.getMsg());
+            String time = new Date().getTime()+"";
+            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
+            baseMsg.setLastTime(new Date(now));
+            baseMsg.setSign(idWorker.nextId()+"");
+            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
+            redisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
+            countSize=1;
+        }
+        vo.setCount(countSize+"");
         Object jsonObj= JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
         try {
             Message message = new Message("msgTopic", "msgTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));

@@ -1,14 +1,6 @@
 package com.hhf.rocketMQ;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.google.common.collect.Lists;
-import com.hhf.entity.BaseMsg;
-import com.hhf.mapper.BaseMsgMapper;
-import com.hhf.mapper.UserMapper;
-import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.RegisterMQVo;
 import com.hhf.webSocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
@@ -16,20 +8,16 @@ import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
 import org.apache.rocketmq.common.message.Message;
-import org.springframework.beans.BeanUtils;
+import org.apache.rocketmq.common.protocol.heartbeat.MessageModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
 
 
 @Slf4j
@@ -48,8 +36,6 @@ public class MsgConsumer implements CommandLineRunner {
     @Autowired
     private WebSocketServer webSocketServer;
 
-    private SnowflakeIdWorker idWorker = new SnowflakeIdWorker(0, 0);
-
     DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("msgGroup");
 
     /**
@@ -58,6 +44,7 @@ public class MsgConsumer implements CommandLineRunner {
     public void messageListener(){
 
         consumer.setNamesrvAddr(namesrvAddr);
+        consumer.setMessageModel(MessageModel.BROADCASTING);//广播
         try {
             //订阅某Topic下所有类型的消息，Tag用符号 * 表示:consumer.subscribe("MQ_TOPIC", "*", new MessageListener() {……});
             //订阅某Topic下某一种类型的消息，请明确标明Tag：consumer.subscribe("MQ_TOPIC", "TagA", new MessageListener() {……});
@@ -76,36 +63,9 @@ public class MsgConsumer implements CommandLineRunner {
                         String info = new String(msg.getBody(), "utf-8");
                         log.info(getClass().getName()+"接收到了消息："+info);
                         RegisterMQVo vo = JSONArray.parseObject(info, RegisterMQVo.class);
-                        //存入redis(更新redis)  改为list存储
-                        long countSize=stringRedisTemplate.opsForList().size("Msg_userId:"+vo.getToId());
-                        if(countSize>0L){
-                            BaseMsg baseMsg = new BaseMsg();
-                            baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
-                            baseMsg.setToId(Integer.parseInt(vo.getToId()));
-                            baseMsg.setMsg(vo.getMsg());
-                            String time = new Date().getTime()+"";
-                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
-                            baseMsg.setLastTime(new Date(now));
-                            baseMsg.setSign(idWorker.nextId()+"");
-                            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
-                            countSize=countSize+1;
-                        }else{
-                            BaseMsg baseMsg = new BaseMsg();
-                            baseMsg.setFromId(Integer.parseInt(vo.getFromId()));
-                            baseMsg.setToId(Integer.parseInt(vo.getToId()));
-                            baseMsg.setMsg(vo.getMsg());
-                            String time = new Date().getTime()+"";
-                            long now = Long.parseLong(time.substring(0, time.length() - 3) + "000");
-                            baseMsg.setLastTime(new Date(now));
-                            baseMsg.setSign(idWorker.nextId()+"");
-                            Object jsonObj= JSON.toJSONString(baseMsg, SerializerFeature.WriteMapNullValue);
-                            stringRedisTemplate.opsForList().leftPush("Msg_userId:"+vo.getToId(),jsonObj.toString());//存入redis
-                            countSize=1;
-                        }
                         //webSocket发送信息
-                        webSocketServer.sendOneMessage(vo.getToId(),countSize+"");
-                        log.info("消息mq转储到redis成功...");
+                        webSocketServer.sendOneMessage(vo.getToId(),vo.getCount());
+                        log.info("消息mq通知ws成功...");
                     } catch (UnsupportedEncodingException e) {
                         e.printStackTrace();
                         return ConsumeConcurrentlyStatus.RECONSUME_LATER;

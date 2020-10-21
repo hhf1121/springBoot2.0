@@ -38,7 +38,7 @@ public class WebSocketServer {
         webSockets.add(this);
         sessionPool.put(userId, session);
         log.info(userId+"【websocket消息】有新的连接，总数为:"+webSockets.size());
-
+        stringRedisTemplate.opsForValue().set("ws_online:"+userId,"在线");
         long size = stringRedisTemplate.opsForList().size("Msg_userId:"+userId);
         if(size>0){
             sendOneMessage(userId,size+"");
@@ -49,7 +49,9 @@ public class WebSocketServer {
     public void onClose() {
         webSockets.remove(this);
         //webSocket移除用户
-        sessionPool.remove(this.session.getPathParameters().get("userId"));
+        String userId = this.session.getPathParameters().get("userId");
+        sessionPool.remove(userId);
+        stringRedisTemplate.delete("ws_online:"+userId);
         sendAllMessage("downOrUp");//下线的时候，让所有用户都刷新
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
@@ -76,7 +78,7 @@ public class WebSocketServer {
          log.info("【websocket消息】单点消息:"+message);
         Session session = sessionPool.get(userId);
         if (session != null) {
-            log.info("存在userId:"+userId+"session:"+session);
+            log.info("用户【"+userId+"】收到消息："+message);
             try {
                 session.getAsyncRemote().sendText(message);
             } catch (Exception e) {
