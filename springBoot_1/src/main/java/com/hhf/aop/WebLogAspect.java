@@ -27,7 +27,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
  *	更深层次：分布式日志收集（待续...）
  */
 
-@Aspect
+//@Aspect
 @Component
 public class WebLogAspect {
 

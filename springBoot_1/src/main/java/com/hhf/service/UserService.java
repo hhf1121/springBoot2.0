@@ -93,6 +93,10 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	@Autowired
 	private UserNoteService userNoteService;
 
+    //获取application配置文件里面的值：初始化的时候
+    @Value("${disconf.domainName}")
+    private String domainName;
+
 
 	public static List<User> cacheUser=Lists.newArrayList();
 
@@ -291,11 +295,11 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		//用户更新成功、通知mq。再自我消费。通知发消息给当前用户、但未读的
         //MQVo
 		QueryWrapper<BaseMsg> baseMsgQueryWrapper=new QueryWrapper<>();
-		baseMsgQueryWrapper.select("from_id").le("to_id",user.getId()).le("status",0);
+		baseMsgQueryWrapper.select("from_id").eq("to_id",user.getId()).eq("status",0);
 		List<BaseMsg> baseMsgs = baseMsgMapper.selectList(baseMsgQueryWrapper);
 		NotificationUserMQVo vo=new NotificationUserMQVo();
         vo.setType("noticeMsgUser");
-		List<Integer> collect = baseMsgs.stream().map(BaseMsg::getFromId).collect(Collectors.toList());
+		Set<Integer> collect = baseMsgs.stream().map(BaseMsg::getFromId).collect(Collectors.toSet());
 		List<String> lists=Lists.newArrayList();
 		for (Integer integer : collect) {
 			lists.add(integer+"");
@@ -417,7 +421,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 	public void afterPropertiesSet() throws Exception {
 		//更新url为当前主机ip
 		try{
-			updateCurrentIP();
+//			updateCurrentIP();
 		}catch (Exception e){
 			log.info("图片url解析失败..."+e.getMessage());
 		}
@@ -443,6 +447,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
 	}
 
+	//改为域名的方式之后，该方法废弃
 	private void updateCurrentIP() {
 		//1.查询所有的picPath
 		QueryWrapper<User> queryWrapper = new QueryWrapper<>();
@@ -642,7 +647,7 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 		System.out.println(newFile.getAbsolutePath());
 		// 上传到 -》 “绝对路径”
 		file.transferTo(newFile);
-		return "http://"+getHostAddress()+":"+port+"/resources/static/file"+File.separator+newFile.getName();
+		return "http://"+domainName+"/resources/static/file"+File.separator+newFile.getName();
 	}
 
 	public Map<String, Object> checkUserName(String userName) {

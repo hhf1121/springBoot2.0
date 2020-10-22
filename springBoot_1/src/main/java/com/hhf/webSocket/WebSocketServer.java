@@ -37,7 +37,7 @@ public class WebSocketServer {
         this.session = session;
         webSockets.add(this);
         sessionPool.put(userId, session);
-        log.info(userId+"【websocket消息】有新的连接，总数为:"+webSockets.size());
+        log.info("【websocket消息】有新的连接:"+userId+"，总数为:"+webSockets.size());
         stringRedisTemplate.opsForValue().set("ws_online:"+userId,"在线");
         long size = stringRedisTemplate.opsForList().size("Msg_userId:"+userId);
         if(size>0){
