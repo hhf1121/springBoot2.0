@@ -52,7 +52,6 @@ public class WebSocketServer {
         String userId = this.session.getPathParameters().get("userId");
         sessionPool.remove(userId);
         stringRedisTemplate.delete("ws_online:"+userId);
-        sendAllMessage("downOrUp");//下线的时候，让所有用户都刷新
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
 

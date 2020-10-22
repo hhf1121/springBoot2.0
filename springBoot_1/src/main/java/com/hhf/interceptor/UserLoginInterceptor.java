@@ -61,7 +61,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
             logger.info("未登录");
 //            response.setStatus(401);
             response.sendError(401);
-            response.sendRedirect("http://localhost:8081/#/Login");
+//            response.sendRedirect("http://learn.hhf.com:8001/#/Login");
             return false;
         }
 //        redis、转换成user对象
@@ -69,7 +69,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
         currentUserContext.setUser(user);
         //redis续时间
         stringRedisTemplate.opsForValue().set(token,s,30, TimeUnit.MINUTES);
-        logger.info("已登录");
+//        logger.info("已登录");
         return true;
     }
 
