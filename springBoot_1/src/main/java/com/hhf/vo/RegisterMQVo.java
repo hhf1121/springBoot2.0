@@ -12,4 +12,6 @@ public class RegisterMQVo {
     private String msg;
 
     private String count;
+
+    private String type;
 }

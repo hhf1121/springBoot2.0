@@ -1,6 +1,7 @@
 package com.hhf.webSocket;
 
 import com.alibaba.fastjson.JSON;
+import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -66,18 +67,18 @@ public class WebSocketServer {
 
     @OnMessage
     public void onMessage(String message) {
-         log.info("【websocket消息】收到客户端消息:"+message);
+//         log.info("【websocket消息】收到客户端消息:"+message);
          //心跳机制
-//        if (StringUtils.isEmpty(message)) {
-//            return;
-//        }
-//        WSDto heartBeatDTO = JSON.parseObject(message, WSDto.class);
-//        if(StringUtils.equals(heartBeatDTO.getType(),"wsHeart")){//如果是心跳、用户续命5s
-//            Long currentDate = System.currentTimeMillis();
-//            Long expireTime = currentDate + 5 * 1000;
-//            String userId = heartBeatDTO.getUserId();
-//            onLineUser.put(userId, expireTime);
-//        }
+        if (StringUtils.isEmpty(message)) {
+            return;
+        }
+        WebSocketDto heartBeatDTO = JSON.parseObject(message, WebSocketDto.class);
+        if(StringUtils.equals(heartBeatDTO.getType(),"wsHeart")){//如果是心跳、用户续命5s
+            Long currentDate = System.currentTimeMillis();
+            Long expireTime = currentDate + 5 * 1000;
+            String userId = heartBeatDTO.getUserId();
+            onLineUser.put(userId, expireTime);
+        }
     }
 
     /**

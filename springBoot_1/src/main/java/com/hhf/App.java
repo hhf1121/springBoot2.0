@@ -18,6 +18,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -46,6 +47,7 @@ import java.util.TimeZone;
 //@EnableDiscoveryClient
 @EnableFeignClients //开启fegin调用
 //@EnableTransactionManagement//开启本地事务，配合@Transactional
+@EnableScheduling
 public class App {
 
 	public static void main(String[] args) {

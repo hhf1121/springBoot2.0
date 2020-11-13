@@ -14,6 +14,7 @@ import com.google.common.collect.Maps;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
 import com.hhf.feignClient.FeignHttpServer;
+import com.hhf.feignClient.PortalAgencyCenter;
 import com.hhf.feignClient.PortalAgencyCenterDto;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.service.IMsgService;
@@ -25,6 +26,7 @@ import com.hhf.vo.MsgVo;
 import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
 import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.rocketmq.client.exception.MQBrokerException;
@@ -288,10 +290,19 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             countSize=1;
         }
         vo.setCount(countSize+"");
-        Object jsonObj= JSON.toJSONString(vo, SerializerFeature.WriteMapNullValue);
-        try {
-            Message message = new Message("msgTopic", "msgTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
-            SendResult result = producer.send(message);
+        //1.redis广播模式
+        log.info("redis发布:[ws:message]");
+        //1.做什么，类型：待办。人员：xxxs
+        WebSocketDto wsDto=new WebSocketDto();
+        wsDto.setType(vo.getCount());
+        wsDto.setAgentCodes(Lists.newArrayList(vo.getToId()));
+        redisTemplate.convertAndSend("ws:message", JSON.toJSONString(wsDto));
+//        //2.发给mq，（广播消费，每个ws服务各自遍历，然后分发消息到对应用户的前端）
+//        portalMessageWSProducer.send(wsDto);
+//       try {
+            //2.MQ，广播的方式。
+//            Message message = new Message("msgTopic", "msgTag", jsonObj.toString().getBytes(RemotingHelper.DEFAULT_CHARSET));
+//            SendResult result = producer.send(message);
             //保存作为发件方的消息记录
             int i = baseMsgMapper.insertSelective(baseMsg);
             //推送给mh系统（调接口）
@@ -317,23 +328,23 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             if(i<1){
                 return ResultUtils.getFailResult("消息保存失败");
             }
-            log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
-        } catch (MQClientException e) {
-            log.error(e.getErrorMessage());
-            return ResultUtils.getFailResult("发送失败");
-        } catch (InterruptedException e) {
-            log.error(e.getMessage());
-            return ResultUtils.getFailResult("发送失败");
-        } catch (UnsupportedEncodingException e) {
-            log.error(e.getMessage());
-            return ResultUtils.getFailResult("发送失败");
-        } catch (RemotingException e) {
-            log.error(e.getMessage());
-            return ResultUtils.getFailResult("发送失败");
-        } catch (MQBrokerException e) {
-            log.error(e.getErrorMessage());
-            return ResultUtils.getFailResult("发送失败");
-        }
+//            log.info("发送响应：MsgId:" + result.getMsgId() + "，发送状态:" + result.getSendStatus());
+//        } catch (MQClientException e) {
+//            log.error(e.getErrorMessage());
+//            return ResultUtils.getFailResult("发送失败");
+//        } catch (InterruptedException e) {
+//            log.error(e.getMessage());
+//            return ResultUtils.getFailResult("发送失败");
+//        } catch (UnsupportedEncodingException e) {
+//            log.error(e.getMessage());
+//            return ResultUtils.getFailResult("发送失败");
+//        } catch (RemotingException e) {
+//            log.error(e.getMessage());
+//            return ResultUtils.getFailResult("发送失败");
+//        } catch (MQBrokerException e) {
+//            log.error(e.getErrorMessage());
+//            return ResultUtils.getFailResult("发送失败");
+//        }
         return ResultUtils.getSuccessResult("发送成功");
     }
 
