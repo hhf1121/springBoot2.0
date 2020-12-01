@@ -64,6 +64,10 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -395,6 +399,22 @@ public class UserService extends ServiceImpl<UserMapper,User> implements Initial
 
     public User getCurrentUser(Long id) {
 		User user = userMapper.selectById(id);
+		//是否生日
+		if(user!=null&&user.getBrithday()==null){
+			user.setIsBrithday("isError");
+		}else {
+			java.util.Date date = user.getBrithday();
+			Instant instant = date.toInstant();
+			ZoneId zone = ZoneId.systemDefault();
+			LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zone);
+			LocalDate brithdayDate = localDateTime.toLocalDate();
+			if(user!=null&&brithdayDate.compareTo(LocalDate.now())==0){
+				user.setIsBrithday("isBrithday");
+			}
+			if(user!=null&&brithdayDate.compareTo(LocalDate.now())!=0){
+				user.setIsBrithday("isNoBrithday");
+			}
+		}
 		//用户没有头像url，则用base64的头像
 		if(user!=null&& !StringUtils.isEmpty(user.getUserName())){//base64的做法
 			byte[] bytes = user.getPhotoData();//转换成字节

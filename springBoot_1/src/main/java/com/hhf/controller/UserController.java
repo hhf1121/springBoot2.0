@@ -25,6 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.time.*;
+import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
@@ -146,7 +148,24 @@ public class UserController {
     public Map<String, Object> queryByVue(String userName, String passWord,String verifyCode, HttpServletResponse httpServletResponse,HttpServletRequest request) {
         User user= null;
         try{
+            //查询用户
             user = userService.queryByVue(userName, passWord, verifyCode, httpServletResponse,request);
+            //是否生日
+            if(user!=null&&user.getBrithday()==null){
+                user.setIsBrithday("isError");
+            }else {
+                java.util.Date date = user.getBrithday();
+                Instant instant = date.toInstant();
+                ZoneId zone = ZoneId.systemDefault();
+                LocalDateTime localDateTime = LocalDateTime.ofInstant(instant, zone);
+                LocalDate brithdayDate = localDateTime.toLocalDate();
+                if(user!=null&&brithdayDate.compareTo(LocalDate.now())==0){
+                    user.setIsBrithday("isBrithday");
+                }
+                if(user!=null&&brithdayDate.compareTo(LocalDate.now())!=0){
+                    user.setIsBrithday("isNoBrithday");
+                }
+            }
         }catch (RuntimeException e){
             return ResultUtils.getFailResult(e.getMessage());
         } catch (IOException e) {

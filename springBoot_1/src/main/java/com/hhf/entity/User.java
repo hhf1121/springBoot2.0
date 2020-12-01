@@ -75,4 +75,7 @@ public class User {
     @TableField(exist = false)
     private String isOnLine;
 
+    @TableField(exist = false)
+    private String isBrithday;
+
 }
