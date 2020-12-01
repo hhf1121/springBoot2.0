@@ -789,7 +789,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
             //查询用户的名字和生日等信息
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
             queryWrapper.select("userName", "address", "name", "brithday");
-            queryWrapper.le("id", id);
+            queryWrapper.eq("id", id);
             User user = userMapper.selectOne(queryWrapper);
             try {
                 //合成图片
