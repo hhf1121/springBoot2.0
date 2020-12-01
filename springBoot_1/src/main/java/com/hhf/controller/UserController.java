@@ -336,4 +336,11 @@ public class UserController {
         return userService.queryVip();
     }
 
+    //获取生日祝福图片
+    @GetMapping(value = "getBrithdayImg")
+    public Map<String, Object> getBrithdayImg(String id) {
+        return userService.getBrithdayImg(id);
+    }
+
+
 }
