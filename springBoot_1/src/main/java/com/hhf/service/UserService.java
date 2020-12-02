@@ -60,11 +60,11 @@ import javax.imageio.ImageIO;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -764,28 +764,48 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         }
         //先去redis里查询，如果redis有信息，证明已经弹出过生日提示。
         String s = stringRedisTemplate.opsForValue().get("brithday:" + id);
-        if(!StringUtils.isEmpty(s)){
+        if (!StringUtils.isEmpty(s)) {
             return ResultUtils.getFailResult("生日祝福已弹出");
         }
         File brithdayFile = null;
-        String property = System.getProperty("user.dir");
-        File file = new File(property + "/springBoot_1/src/main/resources/static/file/");
-        if (file.exists()) {
-            File[] files = file.listFiles();
-            if (null == files || files.length == 0) {
-                return ResultUtils.getFailResult("缺失生日模板");
-            } else {
-                for (File file2 : files) {
-                    if (file2.isFile()) {
-                        if (file2.getName().indexOf("brithday") != -1) {
-                            brithdayFile = file2;
-                            break;
+        BufferedInputStream in=null;
+        //1.先从远程下载
+        try {
+            //目前获取不到：Server returned HTTP response code: 401 for URL
+            URL url = new URL("http://learn.hhf.com/resources/static/file/brithday.jpg");
+            HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+            String AccountPassword = "admin:root";
+            String basicAuth = "Basic " + DatatypeConverter.printBase64Binary(AccountPassword.getBytes());
+            connection.setRequestProperty("Authorization", basicAuth);
+            connection.setRequestMethod("GET");
+            connection.connect();
+            in = new BufferedInputStream(url.openStream());
+        } catch (MalformedURLException e) {
+            log.error(e.getMessage());
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+        //2.如果远程下载失败、从本地服务获取
+        if(in==null){
+            String property = System.getProperty("user.dir");
+            File file = new File(property + "/springBoot_1/src/main/resources/static/file/");
+            if (file.exists()) {
+                File[] files = file.listFiles();
+                if (null == files || files.length == 0) {
+                    return ResultUtils.getFailResult("缺失生日模板");
+                } else {
+                    for (File file2 : files) {
+                        if (file2.isFile()) {
+                            if (file2.getName().indexOf("brithday") != -1) {
+                                brithdayFile = file2;
+                                break;
+                            }
                         }
                     }
                 }
             }
         }
-        if (brithdayFile != null) {
+        if (brithdayFile != null || in!=null) {
             //查询用户的名字和生日等信息
             QueryWrapper<User> queryWrapper = new QueryWrapper<>();
             queryWrapper.select("userName", "address", "name", "brithday");
@@ -793,7 +813,12 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
             User user = userMapper.selectOne(queryWrapper);
             try {
                 //合成图片
-                Image src = ImageIO.read(brithdayFile);
+                Image src = null;
+                if(in==null){
+                    src = ImageIO.read(brithdayFile);
+                }else {
+                    src = ImageIO.read(in);
+                }
                 int wideth = src.getWidth(null);
                 int height = src.getHeight(null);
                 BufferedImage image = new BufferedImage(wideth, height, BufferedImage.TYPE_INT_RGB);
@@ -806,7 +831,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
 
                 g.setColor(Color.CYAN);
                 g.setFont(new Font("宋体", Font.PLAIN, 20));
-                g.drawString("当前日期:"+new SimpleDateFormat("yyyy-MM-dd").format(user.getBrithday()), wideth - 800, height - 330);
+                g.drawString("当前日期:" + new SimpleDateFormat("yyyy-MM-dd").format(user.getBrithday()), wideth - 800, height - 330);
 
                 g.setColor(Color.PINK);
                 g.setFont(new Font("宋体", Font.PLAIN, 30));
@@ -828,7 +853,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
                     String png_base64 = encoder64.encodeBuffer(bytes).trim();//转换成base64串
                     png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
                     //设置redis，证明设置过。一天之后清除
-                    stringRedisTemplate.opsForValue().set("brithday:"+id,"already",24*3600,TimeUnit.SECONDS);
+                    stringRedisTemplate.opsForValue().set("brithday:" + id, "already", 24 * 3600, TimeUnit.SECONDS);
                     return ResultUtils.getSuccessResult(png_base64);
                 }
                 out1.close();
