@@ -1,0 +1,14 @@
+如果feign客户端通过url调用：
+@FeignClient(value = "server-name", url = "http://xxxx/")
+@RequestLine("GET {cityId}.html")
+需修改feign的配置：
+//  使用feign自带契约
+//    @Bean
+//    public Contract feignContract() {
+//        return new Contract.Default();
+//    }
+
+如果feign客户端通过注册中心调用
+依赖jar包
+@FeignClient(value = "server-name")
+@RequestMapping({"/getDataByFeign/{yes}"})
