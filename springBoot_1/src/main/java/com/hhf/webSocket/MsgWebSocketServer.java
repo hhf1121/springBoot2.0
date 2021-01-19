@@ -1,6 +1,7 @@
 package com.hhf.webSocket;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -23,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 @Component
 @ServerEndpoint("/msgWebSocket/{userId}")
 //此注解相当于设置访问URL
-public class WebSocketServer {
+public class MsgWebSocketServer {
 
     /**
      * 无法注入,在启动类里手动注入
@@ -37,7 +38,7 @@ public class WebSocketServer {
 
     private Session session;
 
-    private static CopyOnWriteArraySet<WebSocketServer> webSockets =new CopyOnWriteArraySet<>();
+    private static CopyOnWriteArraySet<MsgWebSocketServer> webSockets =new CopyOnWriteArraySet<>();
 
     public static Map<String,Session> sessionPool = new ConcurrentHashMap<String,Session>();
 
@@ -104,7 +105,7 @@ public class WebSocketServer {
 
     // 此为广播消息
     public void sendAllMessage(String message) {
-        for(WebSocketServer webSocket : webSockets) {
+        for(MsgWebSocketServer webSocket : webSockets) {
              log.info("【websocket消息】广播消息:"+message);
             try {
                 webSocket.session.getAsyncRemote().sendText(message);
@@ -128,8 +129,30 @@ public class WebSocketServer {
         }
     }
 
+
+    // 此为弹幕广播消息
+    public void sendAllMessageByDanMu(WebSocketDto entity) {
+        String message = entity.getMsg();
+        String userId = entity.getUserId();
+        Session session = sessionPool.get(userId);
+        for(MsgWebSocketServer webSocket : webSockets) {
+            log.info("【websocket消息】广播消息:"+message);
+            try {
+                if(webSocket.session==session){
+                    entity.setIsMe(true);
+                    webSocket.session.getAsyncRemote().sendText(JSON.toJSONString(entity, SerializerFeature.WriteMapNullValue));
+                }else {
+                    entity.setIsMe(false);
+                    webSocket.session.getAsyncRemote().sendText(JSON.toJSONString(entity, SerializerFeature.WriteMapNullValue));
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     public static void setStringRedisTemplate(StringRedisTemplate stringRedisTemplate) {
-        WebSocketServer.stringRedisTemplate = stringRedisTemplate;
+        MsgWebSocketServer.stringRedisTemplate = stringRedisTemplate;
     }
 
 }

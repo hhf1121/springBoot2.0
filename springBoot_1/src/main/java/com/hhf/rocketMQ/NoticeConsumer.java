@@ -1,13 +1,8 @@
 package com.hhf.rocketMQ;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.hhf.entity.BaseMsg;
-import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.NotificationUserMQVo;
-import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.MsgWebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -18,12 +13,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
 import java.util.List;
 
 
@@ -34,7 +26,7 @@ public class NoticeConsumer implements CommandLineRunner {
 
 
     @Autowired
-    private WebSocketServer webSocketServer;
+    private MsgWebSocketServer webSocketServer;
 
     /**
      * NameServer 地址

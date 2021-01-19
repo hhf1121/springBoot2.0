@@ -6,7 +6,8 @@ import com.hhf.entity.BaseMsg;
 import com.hhf.service.IMsgService;
 import com.hhf.utils.ResultUtils;
 import com.hhf.vo.MsgVo;
-import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.MsgWebSocketServer;
+import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
@@ -27,7 +28,7 @@ public class MsgController {
     private IMsgService msgService;
 
     @Autowired
-    private WebSocketServer webSocketServer;
+    private MsgWebSocketServer webSocketServer;
 
     @Value("${apache.rocketmq.namesrvAddr}")
     private String namesrvAddr;
@@ -99,6 +100,17 @@ public class MsgController {
     @GetMapping("/sendAllWebSocket")
     public Map<String,Object> sendAllWebSocket(String msg) {
         return msgService.sendAllMsg(msg);
+    }
+
+
+    /**
+     * 在线即时消息，不做持久保存(弹幕)
+     * @param msg
+     * @return
+     */
+    @PostMapping("/sendDMAllWebSocket")
+    public Map<String,Object> sendDMAllWebSocket(@RequestBody  WebSocketDto msg) {
+        return msgService.sendAllMsgByDM(msg);
     }
 
     @PostMapping("/sendOneWebSocket")

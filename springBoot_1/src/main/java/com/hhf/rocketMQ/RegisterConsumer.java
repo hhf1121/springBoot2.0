@@ -3,34 +3,24 @@ package com.hhf.rocketMQ;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.serializer.SerializerFeature;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.google.common.collect.Lists;
 import com.hhf.entity.BaseMsg;
-import com.hhf.entity.User;
-import com.hhf.mapper.BaseMsgMapper;
-import com.hhf.mapper.UserMapper;
-import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.MsgWebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
 import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
-import org.apache.rocketmq.common.consumer.ConsumeFromWhere;
 import org.apache.rocketmq.common.message.Message;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
-import java.util.List;
 
 
 @Slf4j
@@ -42,7 +32,7 @@ public class RegisterConsumer implements CommandLineRunner {
     StringRedisTemplate stringRedisTemplate;
 
     @Autowired
-    private WebSocketServer webSocketServer;
+    private MsgWebSocketServer webSocketServer;
 
     private SnowflakeIdWorker idWorker = new SnowflakeIdWorker(0, 0);
     /**

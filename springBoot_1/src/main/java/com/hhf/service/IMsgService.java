@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.hhf.entity.BaseMsg;
 import com.hhf.vo.MsgVo;
+import com.hhf.webSocket.config.dto.WebSocketDto;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
@@ -24,4 +25,6 @@ public interface IMsgService extends IService<BaseMsg> {
     int insertEntity(BaseMsg baseMsg);
 
     Map<String, Object> sendAllMsg(String msg);
+
+    Map<String, Object> sendAllMsgByDM(WebSocketDto msg);
 }

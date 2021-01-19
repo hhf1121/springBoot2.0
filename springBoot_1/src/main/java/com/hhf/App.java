@@ -1,17 +1,10 @@
 package com.hhf;
 
-import com.hhf.interceptor.UserLoginInterceptor;
-import com.hhf.webSocket.WebSocketServer;
-import org.mybatis.spring.annotation.MapperScan;
-import org.redisson.Redisson;
-import org.redisson.config.Config;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import com.hhf.webSocket.MsgWebSocketServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -19,16 +12,10 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.text.DateFormat;
-import java.text.DateFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 /**
  * Springboot全局启动app
@@ -59,7 +46,7 @@ public class App {
 		System.setProperty("es.set.netty.runtime.available.processors", "false");
 		ConfigurableApplicationContext run = SpringApplication.run(App.class, args);
 		//手动注入bean
-		WebSocketServer.setStringRedisTemplate((StringRedisTemplate) run.getBean("stringRedisTemplate"));
+		MsgWebSocketServer.setStringRedisTemplate((StringRedisTemplate) run.getBean("stringRedisTemplate"));
 	}
 
 

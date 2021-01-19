@@ -35,6 +35,7 @@ public class MyInterceptors  implements WebMvcConfigurer {
         //外部访问路径映射到本地磁盘路径
         registry.addResourceHandler("/resources/static/file/**").addResourceLocations("file:D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/file/");
         registry.addResourceHandler("/resources/static/voice/**").addResourceLocations("file:D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/voice/");
+        registry.addResourceHandler("/resources/static/video/**").addResourceLocations("file:D:/gitLocal/springBoot2.0/springBoot_1/src/main/resources/static/video/");
     }
 
 }

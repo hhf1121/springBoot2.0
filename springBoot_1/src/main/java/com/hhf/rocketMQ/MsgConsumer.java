@@ -2,7 +2,7 @@ package com.hhf.rocketMQ;
 
 import com.alibaba.fastjson.JSONArray;
 import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.MsgWebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
 import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
@@ -34,7 +34,7 @@ public class MsgConsumer implements CommandLineRunner {
     private String namesrvAddr;
 
     @Autowired
-    private WebSocketServer webSocketServer;
+    private MsgWebSocketServer webSocketServer;
 
     DefaultMQPushConsumer consumer=new DefaultMQPushConsumer("msgGroup");
 

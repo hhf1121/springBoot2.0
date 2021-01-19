@@ -14,8 +14,6 @@ import com.google.common.collect.Maps;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
 import com.hhf.feignClient.FeignHttpServer;
-import com.hhf.feignClient.PortalAgencyCenter;
-import com.hhf.feignClient.PortalAgencyCenterDto;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.service.IMsgService;
 import com.hhf.service.UserService;
@@ -25,17 +23,15 @@ import com.hhf.utils.SnowflakeIdWorker;
 import com.hhf.vo.MsgVo;
 import com.hhf.vo.NotificationUserMQVo;
 import com.hhf.vo.RegisterMQVo;
-import com.hhf.webSocket.WebSocketServer;
+import com.hhf.webSocket.MsgWebSocketServer;
 import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.rocketmq.client.exception.MQBrokerException;
 import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
-import org.apache.rocketmq.remoting.exception.RemotingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -43,13 +39,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -70,7 +62,7 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
     private StringRedisTemplate redisTemplate;
 
     @Autowired
-    private WebSocketServer webSocketServer;
+    private MsgWebSocketServer webSocketServer;
 
     private SnowflakeIdWorker idWorker = new SnowflakeIdWorker(0, 0);
 
@@ -191,6 +183,7 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
                 deleteMsg.setMsg(msg.getMsg());
                 deleteMsg.setLastTime(msg.getLastTime());
                 deleteMsg.setSign(msg.getSign());
+                deleteMsg.setUserName(msg.getUserName());
                 Object jsonObj= JSON.toJSONString(deleteMsg, SerializerFeature.WriteMapNullValue);
                 deleteCount+=redisTemplate.opsForList().remove("Msg_userId:"+currentUser.getId(),0,jsonObj.toString());
             }
@@ -389,6 +382,12 @@ public class MsgService extends ServiceImpl<BaseMsgMapper,BaseMsg> implements IM
             return ResultUtils.getFailResult("发送失败");
         }
         return ResultUtils.getSuccessResult("发送成功");
+    }
+
+    @Override
+    public Map<String, Object> sendAllMsgByDM(WebSocketDto msg) {
+        redisTemplate.convertAndSend("dm:message", JSON.toJSONString(msg));
+        return ResultUtils.getSuccessResult("ok");
     }
 
 

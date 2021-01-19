@@ -14,4 +14,9 @@ public class WebSocketDto implements Serializable {
 
     private String userId;
 
+    //弹幕使用
+    private String msg;
+
+    private Boolean isMe;
+
 }

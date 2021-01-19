@@ -15,19 +15,19 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
  * @date 2019/10/17 14:33
  */
 @Configuration
-public class redisConfig {
-    @Autowired
-    private StringRedisTemplate redisTemplate;
-
+public class MsgRedisConfig {
 
     @Bean(destroyMethod = "destroy")
     public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory factory,
-                                                                       MessageListener redisMessageListener) {
+                                                                       MessageListener msgRedisMessageListener,
+                                                                       MessageListener dmRedisMessageListener) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(factory);
 
         //可以添加多个 messageListener
-        container.addMessageListener(redisMessageListener, new PatternTopic("ws:message"));
+        container.addMessageListener(msgRedisMessageListener, new PatternTopic("ws:message"));
+        container.addMessageListener(dmRedisMessageListener, new PatternTopic("dm:message"));
+
 
         return container;
     }
