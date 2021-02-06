@@ -75,7 +75,9 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         List<SellGoods> dtos= Lists.newArrayList();
         List<Long> ids = list.stream().map(o -> o.getId()).collect(Collectors.toList());
         QueryWrapper<SellGoodsPhotos> sellGoodsQueryWrapper=new QueryWrapper<>();
-        sellGoodsQueryWrapper.eq("is_delete",0).in("goods_id",ids);
+        List<Long> objects = Lists.newArrayList(-1L);
+        objects.addAll(ids);
+        sellGoodsQueryWrapper.eq("is_delete",0).in("goods_id",objects);
         List<SellGoodsPhotos> photos = SellGoodsPhotosService.list(sellGoodsQueryWrapper);
         Map<Long, List<SellGoodsPhotos>> map = photos.stream().collect(Collectors.groupingBy(SellGoodsPhotos::getGoodsId));
         for (SellGoods goods : list) {
