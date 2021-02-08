@@ -27,5 +27,19 @@ public class SellGoodsController {
         return sellGoodsService.queryGoods(dto);
     }
 
+    /**
+     * 上下架、完成、删除
+     * @param dto
+     * @return
+     */
+    @PostMapping("/updateStatusGoods")
+    public Map<String,Object> updateStatusGoods(@RequestBody SellGoods dto){
+        return sellGoodsService.updateStatusGoods(dto);
+    }
+
+    @PostMapping("/showGoods")
+    public Map<String,Object> showGoods(@RequestBody SellGoods dto){
+        return sellGoodsService.showGoods(dto);
+    }
 
 }

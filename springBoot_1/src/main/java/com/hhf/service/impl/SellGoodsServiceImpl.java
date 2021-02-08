@@ -1,6 +1,7 @@
 package com.hhf.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -62,14 +63,73 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
 
     @Override
     public Map<String, Object> queryGoods(SellGoods dto) {
+        QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
         User currentUser = CurrentUserContext.getCurrentUser();
         if(StringUtils.isEmpty(dto.getUserCode())){
-            dto.setCreater(currentUser.getUserName());
+//            dto.setCreater(currentUser.getUserName());
         }else {
-            dto.setCreater(dto.getUserCode());
+            queryWrapper.eq("creater",dto.getUserCode());
+//            dto.setCreater(dto.getUserCode());
         }
-        QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
+
+        if(dto.getSellStatus()!=null){
+            queryWrapper.eq("sell_status",dto.getSellStatus());
+        }
         queryWrapper.eq("is_delete",0).eq("user_code",dto.getUserCode());
+        IPage<SellGoods> SellGoodsPageInfo = page(new Page<SellGoods>(dto.getPageIndex(), dto.getPageSize()), queryWrapper);
+        List<SellGoods> list = SellGoodsPageInfo.getRecords();
+        List<SellGoods> dtos= Lists.newArrayList();
+        List<Long> ids = list.stream().map(o -> o.getId()).collect(Collectors.toList());
+        QueryWrapper<SellGoodsPhotos> sellGoodsQueryWrapper=new QueryWrapper<>();
+        List<Long> objects = Lists.newArrayList(-1L);
+        objects.addAll(ids);
+        sellGoodsQueryWrapper.eq("is_delete",0).in("goods_id",objects);
+        List<SellGoodsPhotos> photos = SellGoodsPhotosService.list(sellGoodsQueryWrapper);
+        Map<Long, List<SellGoodsPhotos>> map = photos.stream().collect(Collectors.groupingBy(SellGoodsPhotos::getGoodsId));
+        for (SellGoods goods : list) {
+            SellGoods reEntity=new SellGoods();
+            BeanUtils.copyProperties(goods,reEntity);
+            reEntity.setIdStr(String.valueOf(reEntity.getId()));
+            reEntity.setSellGoodsPhotos(map.get(reEntity.getId()));
+            dtos.add(reEntity);
+        }
+        Page<SellGoods> pageInf=new Page<>();
+        BeanUtils.copyProperties(SellGoodsPageInfo,pageInf);
+        pageInf.setRecords(dtos);
+        return ResultUtils.getSuccessResult(pageInf);
+    }
+
+    @Override
+    public Map<String, Object> updateStatusGoods(SellGoods dto) {
+        UpdateWrapper<SellGoods> updateWrapper=new UpdateWrapper<>();
+        if(dto.getIsDelete()!=null){
+            UpdateWrapper<SellGoodsPhotos> sellGoodsPhotosUpdateWrapper=new UpdateWrapper<>();
+            sellGoodsPhotosUpdateWrapper.set("is_delete",dto.getIsDelete());
+            sellGoodsPhotosUpdateWrapper.eq("goods_id",Long.parseLong(dto.getIdStr()));
+            updateWrapper.set("is_delete",dto.getIsDelete());
+            SellGoodsPhotosService.update(sellGoodsPhotosUpdateWrapper);
+        }
+        if(dto.getSellStatus()!=null){
+            updateWrapper.set("sell_status",dto.getSellStatus());
+        }
+        updateWrapper.eq("id",Long.parseLong(dto.getIdStr()));
+        if (update(updateWrapper)) {
+            return ResultUtils.getSuccessResult("成功");
+        }
+        return ResultUtils.getFailResult("失败");
+    }
+
+    @Override
+    public Map<String, Object> showGoods(SellGoods dto) {
+        QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("sell_status",3);//正常状态的
+        queryWrapper.eq("is_delete",0);
+        if(dto.getSellType()!=null){
+            queryWrapper.eq("sell_type",dto.getSellType());
+        }
+        if(dto.getSellCategory()!=null){
+            queryWrapper.eq("sell_category",dto.getSellCategory());
+        }
         IPage<SellGoods> SellGoodsPageInfo = page(new Page<SellGoods>(dto.getPageIndex(), dto.getPageSize()), queryWrapper);
         List<SellGoods> list = SellGoodsPageInfo.getRecords();
         List<SellGoods> dtos= Lists.newArrayList();
@@ -196,7 +256,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
             dto.setVersion(dto.getVersion()+1);
         }
         if(dto.getSellStatus()==null){
-            dto.setSellStatus(4);
+            dto.setSellStatus(3);//正常
         }
         dto.setCreateTime(date);
         dto.setUpdateTime(date);

@@ -16,4 +16,7 @@ public interface SellGoodsService extends IService<SellGoods> {
 
     Map<String, Object> queryGoods(SellGoods dto);
 
+    Map<String, Object> updateStatusGoods(SellGoods dto);
+
+    Map<String, Object> showGoods(SellGoods dto);
 }

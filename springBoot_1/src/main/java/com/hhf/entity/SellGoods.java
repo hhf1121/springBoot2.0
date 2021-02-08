@@ -53,7 +53,7 @@ public class SellGoods  {
     private Integer sellCategory;
 
     /**
-     * 商品状态1.已买2.已卖3.下架
+     * 商品状态1.完成2.下架3.正常
      */
     @Column(name = "sell_status")
     private Integer sellStatus;
