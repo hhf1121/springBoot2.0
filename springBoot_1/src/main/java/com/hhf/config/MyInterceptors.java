@@ -2,6 +2,7 @@ package com.hhf.config;
 
 import com.hhf.interceptor.UserLoginInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,9 @@ public class MyInterceptors  implements WebMvcConfigurer {
 
     @Autowired
     private UserLoginInterceptor userLoginInterceptor;
+
+    @Value("${disconf.project-directory}")
+    private String directory;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry){
@@ -33,11 +37,11 @@ public class MyInterceptors  implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         //外部访问路径映射到本地磁盘路径
-        registry.addResourceHandler("/resources/static/file/**").addResourceLocations("file:G:/workPlace/springBoot2.0/springBoot_1/src/main/resources/static/file/");
-        registry.addResourceHandler("/resources/static/voice/**").addResourceLocations("file:G:/workPlace/springBoot2.0/springBoot_1/src/main/resources/static/voice/");
-        registry.addResourceHandler("/resources/static/video/**").addResourceLocations("file:G:/workPlace/springBoot2.0/springBoot_1/src/main/resources/static/video/");
-        registry.addResourceHandler("/resources/static/games/**").addResourceLocations("file:G:/workPlace/springBoot2.0/springBoot_1/src/main/resources/static/games/");
-        registry.addResourceHandler("/resources/static/img/**").addResourceLocations("file:G:/workPlace/springBoot2.0/springBoot_1/src/main/resources/static/img/");
+        registry.addResourceHandler("/resources/static/file/**").addResourceLocations("file:"+directory+"/springBoot2.0/springBoot_1/src/main/resources/static/file/");
+        registry.addResourceHandler("/resources/static/voice/**").addResourceLocations("file:"+directory+"/springBoot2.0/springBoot_1/src/main/resources/static/voice/");
+        registry.addResourceHandler("/resources/static/video/**").addResourceLocations("file:"+directory+"/springBoot2.0/springBoot_1/src/main/resources/static/video/");
+        registry.addResourceHandler("/resources/static/games/**").addResourceLocations("file:"+directory+"/springBoot2.0/springBoot_1/src/main/resources/static/games/");
+        registry.addResourceHandler("/resources/static/img/**").addResourceLocations("file:"+directory+"/springBoot2.0/springBoot_1/src/main/resources/static/img/");
     }
 
 }
