@@ -54,7 +54,11 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         setDefaultValueGoods(dto);
         SellGoods goods=new SellGoods();
         BeanUtils.copyProperties(dto,goods);
-        save(goods);
+        if(StringUtils.isEmpty(dto.getIdStr())){
+            save(goods);
+        }else {
+            updateById(goods);
+        }
         //保存附表数据
         dto.setId(goods.getId());
         saveGoodsPhotos(dto);
@@ -158,12 +162,14 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         //根据主表id，查询附表的数据、有就更新，没有就新增
         if(!StringUtils.isEmpty(dto.getIdStr())){//更新
             QueryWrapper<SellGoodsPhotos> queryWrapper=new QueryWrapper<>();
-            queryWrapper.eq("goods_id",dto.getId());
+            queryWrapper.eq("goods_id",Long.parseLong(dto.getIdStr()));
             List<SellGoodsPhotos> SellGoodsPhotos = SellGoodsPhotosService.list(queryWrapper);
             if(SellGoodsPhotos!=null&&!SellGoodsPhotos.isEmpty()){
                 List<Long> ids = SellGoodsPhotos.stream().map(o -> o.getId()).collect(Collectors.toList());
                 List<SellGoodsPhotos> photos = dto.getSellGoodsPhotos();
+                //入参，有id
                 List<SellGoodsPhotos> goodsPhotosids = photos.stream().filter(o -> o.getId() != null).collect(Collectors.toList());
+                //入参、没有id
                 List<SellGoodsPhotos> goodsPhotosNoids = photos.stream().filter(o -> o.getId() == null).collect(Collectors.toList());
                 List<Long> collect = goodsPhotosids.stream().map(o -> o.getId()).collect(Collectors.toList());
                 ids.removeAll(collect);//取差集，将差集id的删除
@@ -175,7 +181,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
                 SellGoodsPhotosService.update(entity,deleteWrapper);
                 //查询是否有展示图片
                 QueryWrapper<SellGoodsPhotos> isShow=new QueryWrapper<>();
-                isShow.eq("is_delete",0).eq("is_show",1).eq("goods_id",Long.parseLong(dto.getIdStr()));
+                isShow.eq("is_delete",0).eq("is_show",1).eq("goods_id",Long.parseLong(dto.getIdStr())).notIn("id",ids);
                 List<SellGoodsPhotos> isShowPhotos = SellGoodsPhotosService.list(isShow);
                 //新增没有id的
                 int i=0;
@@ -184,19 +190,32 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
                 }else {
                     i=1;
                 }
-                for (SellGoodsPhotos noId : goodsPhotosNoids) {
-                    noId.setGoodsId(dto.getId());
-                    setDefaultValuePhotos(noId,dto,i++);
+                //展示的图片被删掉，且没有新增图片。需要把剩下的照片时间最早的更新成展示状态
+                if(goodsPhotosNoids.isEmpty()&&i==0){
+                    QueryWrapper<SellGoodsPhotos> queryWrapper1=new QueryWrapper<>();
+                    queryWrapper1.notIn("id",ids).eq("is_delete",0).eq("goods_id",Long.parseLong(dto.getIdStr()));
+                    queryWrapper1.orderByDesc("latest_time");
+                    queryWrapper1.last("limit 1");
+                    SellGoodsPhotos one = SellGoodsPhotosService.getOne(queryWrapper1);
+                    UpdateWrapper<SellGoodsPhotos> updateWrapper=new UpdateWrapper<>();
+                    updateWrapper.set("is_show",1).eq("id",one.getId());
+                    boolean update = SellGoodsPhotosService.update(updateWrapper);
+                }else {
+                    for (SellGoodsPhotos noId : goodsPhotosNoids) {
+                        noId.setGoodsId(dto.getId());
+                        setDefaultValuePhotos(noId,dto,i++);
+                        SellGoodsPhotosService.save(noId);
+                    }
                 }
             }
         }else {//新增
             List<SellGoodsPhotos> photos = dto.getSellGoodsPhotos();
-            List<String> collect = photos.stream().map(o -> o.getGoodsPhoto()).collect(Collectors.toList());
             int i=0;
-            for (String photo : collect) {
+            for (SellGoodsPhotos photo : photos) {
                 SellGoodsPhotos pht=new SellGoodsPhotos();
                 pht.setGoodsId(dto.getId());
-                pht.setGoodsPhoto(photo);
+                pht.setGoodsPhoto(photo.getGoodsPhoto());
+                pht.setPhotoName(photo.getPhotoName());
                 setDefaultValuePhotos(pht,dto,i++);
                 SellGoodsPhotosService.save(pht);
             }

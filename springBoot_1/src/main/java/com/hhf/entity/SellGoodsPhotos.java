@@ -23,6 +23,7 @@ public class SellGoodsPhotos  {
      * 商品id
      */
     @Column(name = "goods_id")
+    @JsonSerialize(using = ToStringSerializer.class )
     private Long goodsId;
 
     /**
@@ -30,6 +31,13 @@ public class SellGoodsPhotos  {
      */
     @Column(name = "goods_photo")
     private String goodsPhoto;
+
+    /**
+     * 商品名称
+     */
+    @Column(name = "photo_name")
+    private String photoName;
+
 
     /**
      * 是否展示
@@ -72,4 +80,5 @@ public class SellGoodsPhotos  {
      */
     @Column(name = "is_delete")
     private Integer isDelete;
+
 }
