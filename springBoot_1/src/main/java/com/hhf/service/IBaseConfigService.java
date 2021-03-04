@@ -12,4 +12,12 @@ public interface IBaseConfigService extends IService<BaseConfig> {
     Map<String, Object> getDataByConfigCode(String configCode);
 
     Map<String, Object> saveConfig(BaseConfigVo baseConfigVo);
+
+    Map<String, Object> saveBaseConfig(BaseConfig baseConfigVo);
+
+    Map<String, Object> queryBaseConfig();
+
+    Map<String, Object> checkedBaseConfig(BaseConfig baseConfig);
+
+    Map<String, Object> deleteBaseConfig(Long id);
 }

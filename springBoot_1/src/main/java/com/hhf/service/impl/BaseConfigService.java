@@ -80,11 +80,78 @@ public class BaseConfigService extends ServiceImpl<BaseConfigMapper,BaseConfig> 
         return ResultUtils.getFailResult("更新失败");
     }
 
-
-    public static void main(String[] args) {
-        List<Integer> list=Lists.newArrayList(1,2,3,4);
-        List<Integer> list2=Lists.newArrayList(1,2,3,4,5);
-        List<Integer> collect = list.stream().filter(o -> !list2.contains(o)).collect(Collectors.toList());
-        System.out.println(collect);
+    @Override
+    public Map<String, Object> saveBaseConfig(BaseConfig baseConfig) {
+        //校验参数
+        String result=checkParams(baseConfig);
+        if(!StringUtils.isEmpty(result)){
+            return ResultUtils.getFailResult(result);
+        }
+        //校验唯一
+        QueryWrapper<BaseConfig> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("config_code",baseConfig.getConfigCode()).eq("type_value",baseConfig.getTypeValue()).eq("is_delete",0);
+        Integer integer = baseConfigMapper.selectCount(queryWrapper);
+        if(integer>0){
+            return ResultUtils.getFailResult("此类型下，已存在相同编码");
+        }
+        QueryWrapper<BaseConfig> queryWrapper1=new QueryWrapper<>();
+        queryWrapper1.eq("config_name",baseConfig.getConfigName()).ne("config_code",baseConfig.getConfigCode()).eq("is_delete",0);
+        Integer integer1 = baseConfigMapper.selectCount(queryWrapper1);
+        if(integer1>0){
+            return ResultUtils.getFailResult("已存在相同名称的类型");
+        }
+        baseConfig.setColor("");
+        if(baseConfig.getIsDelete()==null){
+            baseConfig.setIsDelete(0);
+        }
+        boolean save = save(baseConfig);
+        if(save){
+            return ResultUtils.getSuccessResult("保存成功");
+        }
+        return ResultUtils.getFailResult("保存失败");
     }
+
+    @Override
+    public Map<String, Object> queryBaseConfig() {
+        QueryWrapper<BaseConfig> queryWrapper=new QueryWrapper<>();
+        queryWrapper.select("distinct  config_name,config_code").eq("is_delete",0);
+        List<BaseConfig> baseConfigs = baseConfigMapper.selectList(queryWrapper);
+        return ResultUtils.getSuccessResult(baseConfigs);
+    }
+
+    @Override
+    public Map<String, Object> checkedBaseConfig(BaseConfig baseConfig) {
+        QueryWrapper<BaseConfig> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("config_name",baseConfig.getConfigName()).eq("config_code",baseConfig.getConfigCode())
+                .eq("type_label",baseConfig.getTypeLabel())
+                .eq("is_delete",0);
+        queryWrapper.or().eq("config_name",baseConfig.getConfigName()).eq("config_code",baseConfig.getConfigCode())
+                .eq("type_value",baseConfig.getTypeValue())
+                .eq("is_delete",0);
+        int count = count(queryWrapper);
+        if(count>0){
+            return ResultUtils.getFailResult("该字典类型下已存在此数据名称或数据数值");
+        }
+        return ResultUtils.getSuccessResult("保存成功");
+    }
+
+    @Override
+    public Map<String, Object> deleteBaseConfig(Long id) {
+        UpdateWrapper<BaseConfig> updateWrapper=new UpdateWrapper<>();
+        updateWrapper.set("is_delete",1).eq("id",id);
+        boolean update = update(updateWrapper);
+        if(update){
+            return ResultUtils.getSuccessResult("删除成功");
+        }
+        return ResultUtils.getFailResult("删除失败");
+    }
+
+    private String checkParams(BaseConfig baseConfig) {
+        if(StringUtils.isEmpty(baseConfig.getConfigName())) return "字典类型名称不能为空";
+        if(StringUtils.isEmpty(baseConfig.getConfigCode())) return "字典类型编码不能为空";
+        if(StringUtils.isEmpty(baseConfig.getTypeLabel())) return "数据名称不能为空";
+        if(StringUtils.isEmpty(baseConfig.getTypeValue())) return "数据编码不能为空";
+        return null;
+    }
+
 }
