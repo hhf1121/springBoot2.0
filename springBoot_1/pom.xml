@@ -203,10 +203,15 @@
           <artifactId>spring-boot-starter-data-redis</artifactId>
       </dependency>
       <!-- 集成redisson 分布式加锁框架-->
-      <dependency>
+     <!-- <dependency>
           <groupId>org.redisson</groupId>
           <artifactId>redisson</artifactId>
           <version>3.8.2</version>
+      </dependency>-->
+      <dependency>
+          <groupId>org.redisson</groupId>
+          <artifactId>redisson-spring-boot-starter</artifactId>
+          <version>3.13.3</version>
       </dependency>
       <!--jedis -->
       <dependency>

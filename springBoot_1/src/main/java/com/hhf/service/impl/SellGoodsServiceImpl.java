@@ -17,6 +17,8 @@ import com.hhf.utils.ResultUtils;
 import com.hhf.utils.SnowflakeIdWorker;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.Redisson;
+import org.redisson.api.RLock;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -39,6 +42,11 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
 
     @Autowired
     private SellGoodsPhotosService SellGoodsPhotosService;
+
+    @Autowired
+    private Redisson redisson;
+
+    final static String GOODS_PRE="GOODS_PRE:";
 
 
 
@@ -155,6 +163,32 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         BeanUtils.copyProperties(SellGoodsPageInfo,pageInf);
         pageInf.setRecords(dtos);
         return ResultUtils.getSuccessResult(pageInf);
+    }
+
+    @Override
+    public Map<String, Object> addGoodsViews(Long id) {
+        if (id==null) {
+            return ResultUtils.getFailResult("商品id为空！");
+        }
+        RLock fairLock = redisson.getFairLock(GOODS_PRE+id);
+        fairLock.lock();
+        try{
+            QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
+            queryWrapper.eq("id",id).eq("is_delete",0);
+            //更新浏览量
+            SellGoods sellGoods = getOne(queryWrapper);
+            SellGoods addView=new SellGoods();
+            int num=Integer.parseInt(sellGoods.getGoodsViews())+1;
+            addView.setGoodsViews(num+"");
+            if(update(addView, queryWrapper)){
+                return ResultUtils.getSuccessResult("操作成功！");
+            }
+        }catch (Exception w){
+            log.error("商品浏览量接口异常："+w.getMessage());
+        }finally {
+            fairLock.unlock();
+        }
+        return ResultUtils.getFailResult("浏览量接口异常");
     }
 
     //设置默认值 _sell_goods_photos

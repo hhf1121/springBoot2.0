@@ -1,6 +1,8 @@
 package com.hhf.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import lombok.ToString;
 
@@ -20,6 +22,7 @@ public class SellGoods  {
      */
     @Id
     @Column(name = "id")
+    @JsonSerialize(using = ToStringSerializer.class)
     private Long id;
 
     /**
@@ -57,6 +60,9 @@ public class SellGoods  {
      */
     @Column(name = "sell_status")
     private Integer sellStatus;
+
+    @Column(name = "goods_views")
+    private String goodsViews;
 
     /**
      * 联系人编码

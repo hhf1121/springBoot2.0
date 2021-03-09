@@ -42,4 +42,9 @@ public class SellGoodsController {
         return sellGoodsService.showGoods(dto);
     }
 
+    @GetMapping("/addGoodsViews")
+    public Map<String,Object> addGoodsViews(Long id){
+        return sellGoodsService.addGoodsViews(id);
+    }
+
 }
