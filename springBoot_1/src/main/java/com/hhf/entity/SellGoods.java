@@ -1,6 +1,8 @@
 package com.hhf.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableLogic;
+import com.baomidou.mybatisplus.annotation.Version;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
@@ -97,6 +99,7 @@ public class SellGoods  {
     /**
      * 版本号
      */
+    @Version
     @Column(name = "version")
     private Integer version;
 
@@ -134,6 +137,7 @@ public class SellGoods  {
      * 是否删除
      */
     @Column(name = "is_delete")
+    @TableLogic
     private Integer isDelete;
 
     @TableField(exist = false)

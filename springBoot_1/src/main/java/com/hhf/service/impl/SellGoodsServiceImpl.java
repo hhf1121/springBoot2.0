@@ -65,7 +65,9 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         if(StringUtils.isEmpty(dto.getIdStr())){
             save(goods);
         }else {
-            updateById(goods);
+            if (!updateById(goods)) {
+                return ResultUtils.getFailResult("请刷新页面之后修改");
+            }
         }
         //保存附表数据
         dto.setId(goods.getId());
@@ -87,7 +89,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         if(dto.getSellStatus()!=null){
             queryWrapper.eq("sell_status",dto.getSellStatus());
         }
-        queryWrapper.eq("is_delete",0).eq("user_code",dto.getUserCode());
+        queryWrapper.eq("user_code",dto.getUserCode());
         IPage<SellGoods> SellGoodsPageInfo = page(new Page<SellGoods>(dto.getPageIndex(), dto.getPageSize()), queryWrapper);
         List<SellGoods> list = SellGoodsPageInfo.getRecords();
         List<SellGoods> dtos= Lists.newArrayList();
@@ -95,7 +97,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         QueryWrapper<SellGoodsPhotos> sellGoodsQueryWrapper=new QueryWrapper<>();
         List<Long> objects = Lists.newArrayList(-1L);
         objects.addAll(ids);
-        sellGoodsQueryWrapper.eq("is_delete",0).in("goods_id",objects);
+        sellGoodsQueryWrapper.in("goods_id",objects);
         List<SellGoodsPhotos> photos = SellGoodsPhotosService.list(sellGoodsQueryWrapper);
         Map<Long, List<SellGoodsPhotos>> map = photos.stream().collect(Collectors.groupingBy(SellGoodsPhotos::getGoodsId));
         for (SellGoods goods : list) {
@@ -135,7 +137,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
     public Map<String, Object> showGoods(SellGoods dto) {
         QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
         queryWrapper.eq("sell_status",3);//正常状态的
-        queryWrapper.eq("is_delete",0);
+//        queryWrapper.eq("is_delete",0);
         if(dto.getSellType()!=null){
             queryWrapper.eq("sell_type",dto.getSellType());
         }
@@ -149,7 +151,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         QueryWrapper<SellGoodsPhotos> sellGoodsQueryWrapper=new QueryWrapper<>();
         List<Long> objects = Lists.newArrayList(-1L);
         objects.addAll(ids);
-        sellGoodsQueryWrapper.eq("is_delete",0).in("goods_id",objects);
+        sellGoodsQueryWrapper.in("goods_id",objects);
         List<SellGoodsPhotos> photos = SellGoodsPhotosService.list(sellGoodsQueryWrapper);
         Map<Long, List<SellGoodsPhotos>> map = photos.stream().collect(Collectors.groupingBy(SellGoodsPhotos::getGoodsId));
         for (SellGoods goods : list) {
@@ -174,7 +176,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         fairLock.lock();
         try{
             QueryWrapper<SellGoods> queryWrapper=new QueryWrapper<>();
-            queryWrapper.eq("id",id).eq("is_delete",0);
+            queryWrapper.eq("id",id);
             //更新浏览量
             SellGoods sellGoods = getOne(queryWrapper);
             SellGoods addView=new SellGoods();
@@ -207,15 +209,20 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
                 List<SellGoodsPhotos> goodsPhotosNoids = photos.stream().filter(o -> o.getId() == null).collect(Collectors.toList());
                 List<Long> collect = goodsPhotosids.stream().map(o -> o.getId()).collect(Collectors.toList());
                 ids.removeAll(collect);//取差集，将差集id的删除
-                QueryWrapper<SellGoodsPhotos> deleteWrapper=new QueryWrapper<>();
-                deleteWrapper.eq("is_delete",0).in("id",ids);
-                SellGoodsPhotos entity=new SellGoodsPhotos();
-                entity.setIsDelete(1);
-                //删掉更改掉的图片。
-                SellGoodsPhotosService.update(entity,deleteWrapper);
+                if(!ids.isEmpty()){
+                    QueryWrapper<SellGoodsPhotos> deleteWrapper=new QueryWrapper<>();
+                    deleteWrapper.in("id",ids);
+                    SellGoodsPhotos entity=new SellGoodsPhotos();
+                    entity.setIsDelete(1);
+                    //删掉更改掉的图片。
+                    SellGoodsPhotosService.update(entity,deleteWrapper);
+                }
                 //查询是否有展示图片
                 QueryWrapper<SellGoodsPhotos> isShow=new QueryWrapper<>();
-                isShow.eq("is_delete",0).eq("is_show",1).eq("goods_id",Long.parseLong(dto.getIdStr())).notIn("id",ids);
+                isShow.eq("is_show",1).eq("goods_id",Long.parseLong(dto.getIdStr()));
+                if(!ids.isEmpty()){
+                    isShow.notIn("id",ids);
+                }
                 List<SellGoodsPhotos> isShowPhotos = SellGoodsPhotosService.list(isShow);
                 //新增没有id的
                 int i=0;
@@ -227,7 +234,7 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
                 //展示的图片被删掉，且没有新增图片。需要把剩下的照片时间最早的更新成展示状态
                 if(goodsPhotosNoids.isEmpty()&&i==0){
                     QueryWrapper<SellGoodsPhotos> queryWrapper1=new QueryWrapper<>();
-                    queryWrapper1.notIn("id",ids).eq("is_delete",0).eq("goods_id",Long.parseLong(dto.getIdStr()));
+                    queryWrapper1.notIn("id",ids).eq("goods_id",Long.parseLong(dto.getIdStr()));
                     queryWrapper1.orderByDesc("latest_time");
                     queryWrapper1.last("limit 1");
                     SellGoodsPhotos one = SellGoodsPhotosService.getOne(queryWrapper1);
@@ -303,11 +310,11 @@ public class SellGoodsServiceImpl extends ServiceImpl<SellGoodsMapper, SellGoods
         }else {
             dto.setUpdater("");
         }
-        if(dto.getVersion()==null){
-            dto.setVersion(0);
-        }else {
-            dto.setVersion(dto.getVersion()+1);
-        }
+//        if(dto.getVersion()==null){
+//            dto.setVersion(0);
+//        }else {
+//            dto.setVersion(dto.getVersion()+1);
+//        }
         if(dto.getSellStatus()==null){
             dto.setSellStatus(3);//正常
         }

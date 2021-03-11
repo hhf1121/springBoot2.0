@@ -1,5 +1,6 @@
 package com.hhf.entity;
 
+import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import java.util.Date;
@@ -79,6 +80,7 @@ public class SellGoodsPhotos  {
      * 是否删除
      */
     @Column(name = "is_delete")
+    @TableLogic
     private Integer isDelete;
 
 }
