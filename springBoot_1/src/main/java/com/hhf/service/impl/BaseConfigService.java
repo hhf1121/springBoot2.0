@@ -132,7 +132,7 @@ public class BaseConfigService extends ServiceImpl<BaseConfigMapper,BaseConfig> 
         if(count>0){
             return ResultUtils.getFailResult("该字典类型下已存在此数据名称或数据数值");
         }
-        return ResultUtils.getSuccessResult("保存成功");
+        return ResultUtils.getSuccessResult("字典check通过");
     }
 
     @Override
