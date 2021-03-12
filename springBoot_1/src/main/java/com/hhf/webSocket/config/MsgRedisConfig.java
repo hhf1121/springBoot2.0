@@ -17,6 +17,10 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 @Configuration
 public class MsgRedisConfig {
 
+
+    //可以添加多个MessageListener，如：
+    //MessageListener msgRedisMessageListener、MessageListener dmRedisMessageListener
+    //对应哪个名字@Service(value = "msgRedisMessageListener")，进入哪个Service的onMessage
     @Bean(destroyMethod = "destroy")
     public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory factory,
                                                                        MessageListener msgRedisMessageListener,

@@ -291,6 +291,8 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
             user.setAddress(userNoteService.districtMapCache.get(user.getAddress()));
         }
         int insert = userMapper.insert(user);
+        //mp插件返回user的id
+//        System.out.println(user.getId());
         if (insert > 0) {//重刷缓存、布隆过滤器
             initBloomFilter();
         }
