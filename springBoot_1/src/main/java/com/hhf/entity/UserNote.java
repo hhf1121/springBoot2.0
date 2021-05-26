@@ -30,6 +30,10 @@ public class UserNote {
 
     private BigDecimal noteMoney;
 
+    private String workType;
+
+    private Integer workTypeSum;
+
     @TableField(fill = FieldFill.INSERT)
     private Date createrTime;
 
@@ -69,5 +73,7 @@ public class UserNote {
     @TableField(exist = false)//回显图片url+name
     private List<ImgVo> imgVos;
 
+    @TableField(exist = false)
+    private List<Integer> workTypes;
 
 }

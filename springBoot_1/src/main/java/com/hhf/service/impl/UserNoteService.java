@@ -3,6 +3,7 @@ package com.hhf.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -32,6 +33,7 @@ import java.net.UnknownHostException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -76,9 +78,18 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
         if(userNote.getNoteMoney()!=null){
             queryWrapper.ge("note_money",userNote.getNoteMoney());
         }
+        if(userNote.getWorkTypes()!=null&&!userNote.getWorkTypes().isEmpty()){
+            queryWrapper.apply("work_type_sum&"+userNote.getWorkTypes().stream().reduce(Integer::sum).orElse(0)+"> 0");
+        }
         IPage<UserNote> iPage = userNoteMapper.selectPage(page, queryWrapper);
         List<UserNote> records = iPage.getRecords();
         for (UserNote note:records){
+            String workType = note.getWorkType();
+            if(!StringUtils.isEmpty(workType)){
+                String[] items = note.getWorkType().split(",");
+                List<Integer> list = Stream.of(items).map(Integer::parseInt).collect(Collectors.toList());
+                note.setWorkTypes(list);
+            }
             note.setIdStr(note.getId()+"");
             //处理多图
             if(!StringUtils.isEmpty(note.getImgCode())){
@@ -110,6 +121,9 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
             return ResultUtils.getFailResult(checkTitle.get("error").toString());
         }
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
+        Integer sum = userNote.getWorkTypes().stream().reduce(Integer::sum).orElse(0);
+        userNote.setWorkTypeSum(sum);
+        userNote.setWorkType(Joiner.on(",").join(userNote.getWorkTypes()));
         int i=userNoteMapper.insert(userNote);
         if(i>0){
             photoCache=Lists.newArrayList();//图片变更，缓存失效
@@ -275,6 +289,9 @@ public class UserNoteService implements IUserNoteService, InitializingBean {
             return ResultUtils.getFailResult(checkTitle.get("error").toString());
         }
         userNote.setNoteAddressName(districtMapCache.get(userNote.getNoteAddress()));
+        Integer sum = userNote.getWorkTypes().stream().reduce(Integer::sum).orElse(0);
+        userNote.setWorkTypeSum(sum);
+        userNote.setWorkType(Joiner.on(",").join(userNote.getWorkTypes()));
         int i = userNoteMapper.updateById(userNote);
         if(i>0){
             photoCache=Lists.newArrayList();//图片变更，缓存失效
