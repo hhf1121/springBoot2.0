@@ -29,6 +29,7 @@ import com.hhf.mapper.UserNoteMapper;
 import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.service.impl.UserNoteService;
 import com.hhf.utils.CurrentUserContext;
+import com.hhf.utils.JwtUtils;
 import com.hhf.utils.ResultUtils;
 import com.hhf.utils.VerifyCodeImgUtil;
 import com.hhf.vo.NotificationUserMQVo;
@@ -350,18 +351,14 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
 ////			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
 ////			user.setPicPath(png_base64);
 ////		}
-        String token = UuidUtils.generateUuid();
         //保存到redis中，30分钟失效
+        user.setToken(JwtUtils.generateById(user.getId()));
         Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
-        stringRedisTemplate.opsForValue().set(token, jsonObj.toString(), 30, TimeUnit.MINUTES);
-        Cookie cookie = new Cookie("myToken", token);
-        cookie.setPath("/");
-        httpServletResponse.addCookie(cookie);
-//		if(user.getYes()==3){
-//			//监听mq
-        //项目启动的时候，就启动
-//			registerConsumer.messageListener();
-//		}
+        stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
+
+//        Cookie cookie = new Cookie("myToken", "token....");
+//        cookie.setPath("/");
+//        httpServletResponse.addCookie(cookie);
         return user;
     }
 

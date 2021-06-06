@@ -23,7 +23,7 @@ public class MyInterceptors  implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry){
         //添加对用户是否登录的拦截器，并添加过滤项、排除项
 		registry.addInterceptor(userLoginInterceptor)
-				.excludePathPatterns("/css/**","/js/**","/images/**")//排除样式、脚本、图片等资源文件
+				.excludePathPatterns("/css/**","/js/**","/images/**","/resources/static/**")//排除样式、脚本、图片等资源文件
 				.excludePathPatterns("/springBoot/vue/queryByVue")//排除登录页面
 				.excludePathPatterns("/springBoot/verifyCode")//排除验证码
 				.excludePathPatterns("/base/getSelectDistrictByLevel")//注册账号-选择地址
