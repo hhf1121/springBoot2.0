@@ -53,6 +53,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.multipart.MultipartFile;
 import sun.misc.BASE64Encoder;
 
@@ -344,21 +345,10 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         if (user == null) {
             return null;
         }
-//		byte[] bytes = user.getPhotoData();//转换成字节
-////		if(bytes!=null&&bytes.length>0){
-////			BASE64Encoder encoder = new BASE64Encoder();
-////			String png_base64 =  encoder.encodeBuffer(bytes).trim();//转换成base64串
-////			png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
-////			user.setPicPath(png_base64);
-////		}
         //保存到redis中，30分钟失效
         user.setToken(JwtUtils.generateById(user.getId()));
         Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
         stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
-
-//        Cookie cookie = new Cookie("myToken", "token....");
-//        cookie.setPath("/");
-//        httpServletResponse.addCookie(cookie);
         return user;
     }
 
@@ -431,6 +421,9 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
                 png_base64 = png_base64.replaceAll("\n", "").replaceAll("\r", "");//删除 \r\n
                 user.setCachePhoto(png_base64);
             }
+            user.setToken(JwtUtils.generateById(user.getId()));
+            Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
+            stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
             return user;
         }
         return new User();
@@ -438,6 +431,9 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
 
     public String getCurrentUserStr(Long id) {
         User user = userMapper.selectById(id);
+        user.setToken(JwtUtils.generateById(user.getId()));
+        Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
+        stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
         if (user != null && !StringUtils.isEmpty(user.getUserName())) {
             return JSONObject.toJSONString(user);
         }
@@ -566,28 +562,15 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         }
     }
 
-    public void downUser(HttpServletRequest httpServletRequest, HttpServletResponse response) throws IOException {
-        Cookie[] cookies = httpServletRequest.getCookies();
-        String token = "";
-        User user = null;
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("myToken")) {
-                token = cookie.getValue();
-                String s = stringRedisTemplate.opsForValue().get(token);
-                user = JSONArray.parseObject(s, User.class);
-                stringRedisTemplate.delete(token);//删除redis
-                Cookie cookie1 = new Cookie(cookie.getName(), null);
-                cookie1.setMaxAge(0);//cookie失效
-                cookie1.setPath("/");
-                response.addCookie(cookie1);
-//				response.setStatus(401);
-//				response.sendError(401);
-//				response.sendRedirect("http://localhost:8081/#/Login");
-                break;
+    public void downUser() {
+        try {
+            String userid = RequestContextHolder.getRequestAttributes().getAttribute(CurrentUserContext.USER_ID_KEY, 0).toString();
+            if(org.apache.commons.lang.StringUtils.isNotEmpty(userid)){
+                stringRedisTemplate.delete(userid);
             }
+        } catch (Exception e) {
+            log.error("登出错误:{}",e.getMessage());
         }
-        //管理员关掉mq服务
-//		if(user!=null&&user.getId()==1) registerConsumer.stopListener();
     }
 
     public Map<String, Object> getVerifyCode(HttpServletRequest request, HttpServletResponse response, String userName) {

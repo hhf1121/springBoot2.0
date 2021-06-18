@@ -9,6 +9,7 @@ import com.hhf.service.AsynService;
 import com.hhf.service.JDBCService;
 import com.hhf.service.ProductService;
 import com.hhf.service.UserService;
+import com.hhf.utils.JwtUtils;
 import com.hhf.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
@@ -249,13 +250,15 @@ public class UserController {
             return ResultUtils.getFailResult("用户未登录");
         }
         User user = JSONArray.parseObject(s, User.class);
+        user.setToken(JwtUtils.generateById(user.getId()));
+
         return ResultUtils.getSuccessResult(user);
     }
 
     //下线用户
     @GetMapping("/downUser")
-    public void downUser(HttpServletRequest httpServletRequest,HttpServletResponse response) throws IOException {
-         userService.downUser(httpServletRequest,response);
+    public void downUser(){
+         userService.downUser();
     }
 
     /**
