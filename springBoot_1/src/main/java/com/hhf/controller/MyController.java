@@ -13,16 +13,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 //import com.hhf.api.providerApi;
 
@@ -57,6 +56,90 @@ public class MyController {
 	//获取application配置文件里面的值：初始化的时候
 	@Value("${disconf.name}")
 	private String name;
+
+	@RequestMapping("/redis_lua")
+	public Map<String,Object> RedisLua(){
+		String script = "--返回的变量\n" +
+				"local result = {}\n" +
+				"--获取KEY\n" +
+				"--开抢时间\n" +
+				"local key1 = KEYS[1]\n" +
+				"--过期时间\n" +
+				"local key2 = KEYS[2]\n" +
+				"--红包金额分配key\n" +
+				"local key3 = KEYS[3]\n" +
+				"--红包领取记录key\n" +
+				"local key4 = KEYS[4]\n" +
+				"--红包实体信息\n" +
+				"--local key5 = KEYS[5]\n" +
+				"\n" +
+				"--获取value ,占时是uid\n" +
+				"--local value1 = ARGV[1]\n" +
+				"--1.校验是否过期\n" +
+				"if( redis.call('ttl',key2) == -2)\n" +
+				"then\n" +
+				"result[1] = '1'\n" +
+				"result[2] =   cjson.encode('红包已过期')\n" +
+				"return result;\n" +
+				"end\n" +
+				"\n" +
+				"--2.校验是否触发\n" +
+				"local trigger_time = redis.call('ttl',key1)\n" +
+				"if(trigger_time ~= -2)\n" +
+				"then\n" +
+				"result[1] = '2'\n" +
+				"result[2] =  trigger_time\n" +
+				"return result;\n" +
+				"end\n" +
+				"\n" +
+				"--3.校验是否已经抢过\n" +
+				"if (redis.call('hexists',key4,ARGV[1])  ~=0) \n" +
+				"then\n" +
+				"result[1] = '3'\n" +
+				"result[2] =  cjson.encode('已抢到红包')\n" +
+				"return result;\n" +
+				"else\n" +
+				"local re = redis.call('rpop',key3)\n" +
+				"if re\n" +
+				"then\n" +
+				"redis.call('hset',key4,ARGV[1],1)\n" +
+				"result[1] = '4'\n" +
+				"result[2] =  re\n" +
+				"return result;\n" +
+				"else\n" +
+				"result[1] = '5'\n" +
+				"result[2] =  cjson.encode('来慢了')\n" +
+				"return result;\n" +
+				"end\n" +
+				"end\n" +
+				"\n" +
+				" \n" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"\n" +
+				"\n";
+
+
+
+		DefaultRedisScript<List> defaultRedisScript = new DefaultRedisScript<>();
+		defaultRedisScript.setResultType(List.class);
+		defaultRedisScript.setScriptText(script);
+
+		List<String> keyList = new ArrayList<>();
+		keyList.add("RED_ENVELOPE_LOCK_KEY");
+		keyList.add("RED_ENVELOPE_TTL_KEY");
+		keyList.add("RED_ENVELOPE_AMOUNT_KEY");
+		keyList.add("RED_ENVELOPE_RECORD");
+
+
+		List execute = redisTemplate.execute(defaultRedisScript, keyList, "123");
+		execute.forEach(o->log.info(o.toString()));
+		return ResultUtils.getSuccessResult("成功");
+	}
+
 
 	@RequestMapping("/myIndex")
 	public Map<String,Object> getMyIndex(){
