@@ -1,6 +1,8 @@
 package com.hhf.controller;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
 import com.hhf.entity.User;
@@ -9,6 +11,7 @@ import com.hhf.service.AsynService;
 import com.hhf.service.JDBCService;
 import com.hhf.service.ProductService;
 import com.hhf.service.UserService;
+import com.hhf.utils.JwtUtils;
 import com.hhf.utils.ResultUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.client.exception.MQBrokerException;
@@ -29,6 +32,7 @@ import java.time.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
 //import com.hhf.dubbo.DubboService;
 
@@ -249,13 +253,16 @@ public class UserController {
             return ResultUtils.getFailResult("用户未登录");
         }
         User user = JSONArray.parseObject(s, User.class);
+        user.setToken(JwtUtils.generateById(user.getId()));
+        Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
+        stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
         return ResultUtils.getSuccessResult(user);
     }
 
     //下线用户
     @GetMapping("/downUser")
-    public void downUser(HttpServletRequest httpServletRequest,HttpServletResponse response) throws IOException {
-         userService.downUser(httpServletRequest,response);
+    public void downUser() throws IOException {
+         userService.downUser();
     }
 
     /**

@@ -51,80 +51,49 @@ public class UserLoginInterceptor implements HandlerInterceptor {
                              Object handler)throws Exception {
         log.info("当前服务器ip："+port);
         String token = request.getHeader("authToken");
-//        String requestURI = request.getRequestURI().replaceAll("/+", "/");
-//        log.info("requestURI:{}",requestURI);
-//        if(requestURI.contains("/resources/static/")){
-//            logger.info("静态文件");
-//            return true;
-//        }
         if (StringUtils.isEmpty(token)) {
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
 
         Claims claim = JwtUtils.getClaim(token);
         if(claim == null){
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
         Integer userId = null;
         try {
             userId = JwtUtils.getUserId(token);
         } catch (Exception e) {
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
         if(userId==null){
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
         String obj = stringRedisTemplate.opsForValue().get(userId+"");
         if (obj == null) {
             //直接重定向到登录页面
             logger.info("未登录");
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
         User user = JSONObject.parseObject(obj, User.class);
         if (user == null) {
             //直接重定向到登录页面
             logger.info("未登录");
-//            response.sendError(401);
+            response.sendError(401);
             return false;
         }
         if(!token.equals(user.getToken())){
             logger.info("token失效");
-//            response.sendError(401);
-            throw new RuntimeException("token失效");
+            response.sendError(401);
+//            throw new RuntimeException("token失效");
         }
         request.setAttribute(CurrentUserContext.USER_INFO, JSON.toJSONString(user));
         request.setAttribute(CurrentUserContext.USER_ID_KEY, userId);
         request.setAttribute(CurrentUserContext.OAUTH_APP_TOKEN,userId);
-//        Cookie[] cookies = request.getCookies();
-//        String token = "";
-//        if(cookies!=null&&cookies.length>0){
-//            for (Cookie cookie : cookies) {
-//                if (StringUtils.equals(cookie.getName(),"myToken")) {
-//                    token = cookie.getValue();
-//                    break;
-//                }
-//            }
-//        }
-
-//        String s = stringRedisTemplate.opsForValue().get(token);
-//        if(StringUtils.isBlank(s)){
-//            //直接重定向到登录页面
-//            logger.info("未登录");
-////            response.setStatus(401);
-//            response.sendError(401);
-////            response.sendRedirect("http://learn.hhf.com:8001/#/Login");
-//            return false;
-//        }
-//        redis、转换成user对象
-//        User user = JSONArray.parseObject(s, User.class);
-//        currentUserContext.setUser(user);
-//        //redis续时间
-//        stringRedisTemplate.opsForValue().set(token,s,30, TimeUnit.MINUTES);
         return true;
     }
 
