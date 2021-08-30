@@ -9,6 +9,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hhf.entity.User;
+import com.hhf.enums.RedisKeyEnum;
 import com.hhf.rocketMQ.RegisterConsumer;
 import com.hhf.utils.CurrentUserContext;
 import com.hhf.utils.JwtUtils;
@@ -72,7 +73,7 @@ public class UserLoginInterceptor implements HandlerInterceptor {
             response.sendError(401);
             return false;
         }
-        String obj = stringRedisTemplate.opsForValue().get(userId+"");
+        String obj = stringRedisTemplate.opsForValue().get(RedisKeyEnum.USER.getCode()+userId);
         if (obj == null) {
             //直接重定向到登录页面
             logger.info("未登录");

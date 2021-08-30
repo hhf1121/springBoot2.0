@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.hhf.entity.ProductProManage;
 import com.hhf.entity.ProductProManageExample;
 import com.hhf.entity.User;
+import com.hhf.feignClient.LoginFeign;
 import com.hhf.rocketMQ.MQProducer;
 import com.hhf.service.AsynService;
 import com.hhf.service.JDBCService;
@@ -48,6 +49,9 @@ public class UserController {
 
     @Autowired
     private UserService userService;//userService
+
+    @Autowired
+    private LoginFeign loginFeign;
 
     @Autowired
     private JDBCService JDBCService;//jdbcService
@@ -151,6 +155,9 @@ public class UserController {
         try{
             //查询用户
             user = userService.queryByVue(userName, passWord, verifyCode, httpServletResponse,request);
+            //给管理员推消息
+            log.info("登录，给管理员推消息...");
+            loginFeign.userLoginInfo(user.getUserName());
             //是否生日
             if(user!=null&&user.getBrithday()==null){
                 user.setIsBrithday("isError");

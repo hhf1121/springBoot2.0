@@ -19,6 +19,7 @@ public class LoginFeignFallBack implements LoginFeign {
 
     @Override
     public String getTicket() {
+        log.error("getTicket调用失败");
         return null;
     }
 
@@ -32,5 +33,11 @@ public class LoginFeignFallBack implements LoginFeign {
     public Map<String, Object> getAppinfo() {
         log.error("getAppinfo调用失败");
         return ResultUtils.getFailResult("调用失败");
+    }
+
+    @Override
+    public Map<String, Object> userLoginInfo(String userCode) {
+        log.error("userLoginInfo调用失败",userCode);
+        return ResultUtils.getFailResult("userLoginInfo调用失败");
     }
 }

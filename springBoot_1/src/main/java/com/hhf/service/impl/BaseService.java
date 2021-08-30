@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.collect.Lists;
 import com.hhf.entity.BaseDistrict;
 import com.hhf.entity.BaseDistrictExample;
+import com.hhf.enums.RedisKeyEnum;
 import com.hhf.mapper.BaseDistrictMapper;
 import com.hhf.service.IBaseService;
 import com.hhf.utils.ResultUtils;
@@ -58,7 +59,7 @@ public class BaseService implements IBaseService {
             return ResultUtils.getFailResult("要查询的等级必传");
         }
         //存入redis
-        String redisjson = stringRedisTemplate.opsForValue().get(level);
+        String redisjson = stringRedisTemplate.opsForValue().get(RedisKeyEnum.ADDRESS.getCode()+level);
         if(!StringUtils.isEmpty(redisjson)){
             //将json字符串转成List<BaseDistrictVo>对象
             List<BaseDistrictVo> list = JSONArray.parseArray(redisjson, BaseDistrictVo.class);
@@ -150,7 +151,7 @@ public class BaseService implements IBaseService {
         Object jsonObj=JSON.toJSONString(vos, SerializerFeature.WriteMapNullValue);
 //        Object jsonObj = JSONArray.toJSON(vos);
         log.info(jsonObj.toString());
-        stringRedisTemplate.opsForValue().set(level,jsonObj.toString(),60,TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisKeyEnum.ADDRESS.getCode()+level,jsonObj.toString(),60,TimeUnit.MINUTES);
         return ResultUtils.getSuccessResult(vos);
     }
 

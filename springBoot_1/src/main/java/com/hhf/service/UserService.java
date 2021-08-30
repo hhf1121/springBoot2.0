@@ -22,6 +22,7 @@ import com.google.common.hash.Funnels;
 import com.hhf.entity.BaseMsg;
 import com.hhf.entity.User;
 import com.hhf.entity.UserNote;
+import com.hhf.enums.RedisKeyEnum;
 import com.hhf.mapper.BaseMsgMapper;
 import com.hhf.mapper.CommonMapper;
 import com.hhf.mapper.UserMapper;
@@ -343,12 +344,12 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         wrapper.eq("userName", userName).eq("passWord", passWord);
         User user = userMapper.selectOne(wrapper);
         if (user == null) {
-            return null;
+            throw new RuntimeException("账号或密码错误");
         }
         //保存到redis中，30分钟失效
         user.setToken(JwtUtils.generateById(user.getId()));
         Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
-        stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisKeyEnum.USER.getCode()+user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
         return user;
     }
 
@@ -730,7 +731,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
                 break;
             }
             //是否在线
-            if (stringRedisTemplate.opsForValue().get("ws_online:" + user.getId() + "") != null) {
+            if (stringRedisTemplate.opsForValue().get(RedisKeyEnum.WS_ONLINE.getCode()+ user.getId() + "") != null) {
                 user.setIsOnLine("[在线]");
             } else {
                 user.setIsOnLine("[离线]");

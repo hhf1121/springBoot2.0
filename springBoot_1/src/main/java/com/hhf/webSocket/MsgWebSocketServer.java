@@ -2,6 +2,7 @@ package com.hhf.webSocket;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.serializer.SerializerFeature;
+import com.hhf.enums.RedisKeyEnum;
 import com.hhf.webSocket.config.dto.WebSocketDto;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +50,7 @@ public class MsgWebSocketServer {
         webSockets.add(this);
         sessionPool.put(userId, session);
         log.info("【websocket消息】有新的连接:"+userId+"，总数为:"+webSockets.size());
-        stringRedisTemplate.opsForValue().set("ws_online:"+userId,"在线");
+        stringRedisTemplate.opsForValue().set(RedisKeyEnum.WS_ONLINE.getCode() +userId,"在线");
         long size = stringRedisTemplate.opsForList().size("Msg_userId:"+userId);
         if(size>0){
             sendOneMessage(userId,size+"");
@@ -62,7 +63,7 @@ public class MsgWebSocketServer {
         //webSocket移除用户
         String userId = this.session.getPathParameters().get("userId");
         sessionPool.remove(userId);
-        stringRedisTemplate.delete("ws_online:"+userId);
+        stringRedisTemplate.delete(RedisKeyEnum.WS_ONLINE.getCode()+userId);
         log.info("【websocket消息】连接断开，总数为:"+webSockets.size());
     }
 

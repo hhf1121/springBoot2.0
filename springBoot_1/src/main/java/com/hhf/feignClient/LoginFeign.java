@@ -33,5 +33,7 @@ public interface LoginFeign{
     @RequestMapping("/getAppinfo")
     public Map<String,Object> getAppinfo();
 
+    @RequestMapping("/userLoginInfo")
+    public Map<String,Object> userLoginInfo(@RequestParam("userCode") String userCode);
 
 }
