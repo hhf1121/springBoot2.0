@@ -567,7 +567,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         try {
             String userid = RequestContextHolder.getRequestAttributes().getAttribute(CurrentUserContext.USER_ID_KEY, 0).toString();
             if(org.apache.commons.lang.StringUtils.isNotEmpty(userid)){
-                stringRedisTemplate.delete(userid);
+                stringRedisTemplate.delete(RedisKeyEnum.USER.getCode()+userid);
             }
         } catch (Exception e) {
             log.error("登出错误:{}",e.getMessage());
