@@ -353,6 +353,23 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         return user;
     }
 
+
+    public User loginByWx(User user) {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("openId", user.getOpenId());
+        User one = userMapper.selectOne(wrapper);
+        if (one == null) {
+            throw new RuntimeException("不存在用户");
+        }
+        one.setIsDelete(0);
+        userMapper.updateById(one);
+        //保存到redis中，30分钟失效
+        user.setToken(JwtUtils.generateById(one.getId()));
+        Object jsonObj = JSON.toJSONString(one, SerializerFeature.WriteMapNullValue);
+        stringRedisTemplate.opsForValue().set(RedisKeyEnum.USER.getCode()+one.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
+        return user;
+    }
+
     public int deleteByVue(Long id) {
         return userMapper.deleteById(id);
     }
@@ -424,7 +441,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
             }
             user.setToken(JwtUtils.generateById(user.getId()));
             Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
-            stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
+            stringRedisTemplate.opsForValue().set(RedisKeyEnum.USER.getCode()+user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
             return user;
         }
         return new User();
@@ -434,7 +451,7 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         User user = userMapper.selectById(id);
         user.setToken(JwtUtils.generateById(user.getId()));
         Object jsonObj = JSON.toJSONString(user, SerializerFeature.WriteMapNullValue);
-        stringRedisTemplate.opsForValue().set(user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
+        stringRedisTemplate.opsForValue().set(RedisKeyEnum.USER.getCode()+user.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
         if (user != null && !StringUtils.isEmpty(user.getUserName())) {
             return JSONObject.toJSONString(user);
         }

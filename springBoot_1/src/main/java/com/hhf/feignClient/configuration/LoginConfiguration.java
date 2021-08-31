@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration("loginConfiguration")
 public class LoginConfiguration {
-//
+
     @Bean("springMvcContract")
     public Contract feignContract() {
         return new SpringMvcContract();

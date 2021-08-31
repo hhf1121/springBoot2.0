@@ -31,6 +31,7 @@ public class MyInterceptors  implements WebMvcConfigurer {
 				.excludePathPatterns("/springBoot/vue/loadingFile")//注册账号-用户头像
 				.excludePathPatterns("/springBoot/checkUserName")//注册账号-用户账号
 				.excludePathPatterns("*/msgWebSocket/*")//webSocket长连接
+				.excludePathPatterns("/api/**")//对外接口
 				.excludePathPatterns("/my/*");//my Controller测试控制器
     }
 

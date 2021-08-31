@@ -13,17 +13,18 @@ import org.springframework.web.bind.annotation.ResponseBody;
  *
  */
 
-//@ControllerAdvice(basePackages="com.hhf.controller")//aop哪个包下的。  (此处注释掉全局异常，以便开发排错)
+@ControllerAdvice(basePackages="com.hhf.controller")//aop哪个包下的。  (此处注释掉全局异常，以便开发排错)
 public class GlobalExceptionController {
 
 	
 	@ExceptionHandler(RuntimeException.class)//捕获此异常。
 	@ResponseBody
-	public Map<String,Object> errorResult(){
+	public Map<String,Object> errorResult(Exception w){
 		//正常项目中，一般是会把异常记录到日志中，而不是返回错误信息、
 		Map<String,Object> resultMap=new HashMap<String,Object>();
 		resultMap.put("errorCode", "500");
-		resultMap.put("errorMsg", "RuntimeException");
+		resultMap.put("success", false);
+		resultMap.put("errorMsg", w.getMessage());
 		return resultMap;
 	}
 	

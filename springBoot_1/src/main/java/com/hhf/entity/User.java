@@ -81,4 +81,10 @@ public class User {
     @TableField(exist = false)
     private String token;
 
+    @TableField("openId")
+    private String openId;
+
+    @TableField("unionId")
+    private String unionId;
+
 }
