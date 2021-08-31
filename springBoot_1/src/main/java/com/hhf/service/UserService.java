@@ -364,10 +364,11 @@ public class UserService extends ServiceImpl<UserMapper, User> implements Initia
         one.setIsDelete(0);
         userMapper.updateById(one);
         //保存到redis中，30分钟失效
-        user.setToken(JwtUtils.generateById(one.getId()));
+        one.setToken(JwtUtils.generateById(one.getId()));
         Object jsonObj = JSON.toJSONString(one, SerializerFeature.WriteMapNullValue);
         stringRedisTemplate.opsForValue().set(RedisKeyEnum.USER.getCode()+one.getId()+"", jsonObj.toString(), 30, TimeUnit.MINUTES);
-        return user;
+        
+        return one;
     }
 
     public int deleteByVue(Long id) {
