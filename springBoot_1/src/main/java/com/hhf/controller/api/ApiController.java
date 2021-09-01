@@ -9,10 +9,7 @@ import com.hhf.utils.ResultUtils;
 import org.elasticsearch.rest.RestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -58,6 +55,18 @@ public class ApiController {
     public Map<String,Object> loginUser(@RequestBody User user){
         User user1 = userService.loginByWx(user);
         return  ResultUtils.getSuccessResult(user1);
+    }
+
+
+    @RequestMapping(value = "/getUserByOpenid",method = RequestMethod.GET)
+    public User getUserByOpenid(@RequestParam("openId")String openId){
+        if(StringUtils.isEmpty(openId)){
+            return new User();
+        }
+        QueryWrapper<User> queryWrapper=new QueryWrapper<>();
+        queryWrapper.eq("isDelete",0).eq("openId",openId).orderByDesc("createDate");
+        User one = userService.getOne(queryWrapper);
+        return  one;
     }
 
 }
